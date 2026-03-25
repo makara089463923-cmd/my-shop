@@ -22,10 +22,10 @@ export async function POST() {
   if (cartItems.length === 0) {
     return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
   }
-
-const total = cartItems.reduce(
-  (sum: number, item) => sum + item.product.price * item.quantity, 0
-)
+  const total = cartItems.reduce(
+     (sum: number, item: { product: { price: number }; quantity: number }) => 
+    sum + item.product.price * item.quantity, 0
+  )
   const order = await prisma.order.create({
     data: {
       userId: user.id,
