@@ -1,14 +1,10 @@
+import { prisma } from '@/lib/prisma'
 import ProductCard from '@/components/ProductCard'
 
-async function getProducts() {
-  const res = await fetch('http://localhost:3000/api/products', {
-    cache: 'no-store',
-  })
-  return res.json()
-}
-
 export default async function ProductsPage() {
-  const products = await getProducts()
+  const products = await prisma.product.findMany({
+    orderBy: { id: 'desc' },
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -22,7 +18,7 @@ export default async function ProductsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product: any) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
