@@ -1,0 +1,58 @@
+[
+  {
+    "name": "ផ្កាកុលាបក្រហម",
+    "price": 15,
+    "image": "https://images.pexels.com/photos/736230/pexels-photo-736230.jpeg",
+    "stock": 50,
+    "category": "ផ្កាកុលាប"
+  },
+  {
+    "name": "ផ្កាឈូកពណ៌ផ្កាឈូក",
+    "price": 12,
+    "image": "https://images.pexels.com/photos/1309638/pexels-photo-1309638.jpeg",
+    "stock": 30,
+    "category": "ផ្កាឈូក"
+  },
+  {
+    "name": "ផ្កាម្លិះស",
+    "price": 8,
+    "image": "https://images.pexels.com/photos/992734/pexels-photo-992734.jpeg",
+    "stock": 100,
+    "category": "ផ្កាម្លិះ"
+  },
+  {
+    "name": "ផ្កាអ័រគីដេស្វាយ",
+    "price": 25,
+    "image": "https://images.pexels.com/photos/2804745/pexels-photo-2804745.jpeg",
+    "stock": 20,
+    "category": "អ័រគីដេ"
+  },
+  {
+    "name": "ផ្កាឈូករ័ត្ន",
+    "price": 10,
+    "image": "https://images.pexels.com/photos/736230/pexels-photo-736230.jpeg",
+    "stock": 45,
+    "category": "ឈូករ័ត្ន"
+  },
+  {
+    "name": "ផ្កាលីលីស",
+    "price": 18,
+    "image": "https://images.pexels.com/photos/736230/pexels-photo-736230.jpeg",
+    "stock": 35,
+    "category": "លីលី"
+  },
+  {
+    "name": "ភួងផ្កាចម្រុះ",
+    "price": 35,
+    "image": "https://images.pexels.com/photos/736230/pexels-photo-736230.jpeg",
+    "stock": 15,
+    "category": "ភួង"
+  },
+  {
+    "name": "ផ្កាកុលាបស",
+    "price": 15,
+    "image": "https://images.pexels.com/photos/736230/pexels-photo-736230.jpeg",
+    "stock": 40,
+    "category": "ផ្កាកុលាប"
+  }
+]

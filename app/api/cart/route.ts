@@ -14,9 +14,17 @@ export async function GET() {
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const cart = await prisma.cart.findMany({
+  const cart = await prisma.cart.findFirst({
     where: { userId: user.id },
-    include: { product: true },
+    include: {
+      items: {
+        include: {
+          variant: {
+            include: { product: true },
+          },
+        },
+      },
+    },
   })
 
   return NextResponse.json(cart)
@@ -28,28 +36,63 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { productId, quantity } = await req.json()
-
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
   })
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const existing = await prisma.cart.findFirst({
-    where: { userId: user.id, productId },
+  const { productId, quantity } = await req.json()
+
+  // រក variant default សម្រាប់ product នេះ
+  let variant = await prisma.productVariant.findFirst({
+    where: { productId },
+  })
+
+  // បើគ្មាន variant → បង្កើត default variant
+  if (!variant) {
+    const product = await prisma.product.findUnique({ where: { id: productId } })
+    if (!product) {
+      return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+    }
+variant = await prisma.productVariant.create({
+  data: {
+    productId,
+    name: 'Default',
+    sku: `${productId}-default`,
+    price: product.price,
+    stock: product.stock,
+    attributes: {},
+  },
+})
+  }
+
+  // រក ឬបង្កើត cart
+  let cart = await prisma.cart.findFirst({
+    where: { userId: user.id },
+  })
+
+  if (!cart) {
+    cart = await prisma.cart.create({
+      data: { userId: user.id },
+    })
+  }
+
+  // ពិនិត្យ existing cart item
+  const existing = await prisma.cartItem.findFirst({
+    where: { cartId: cart.id, variantId: variant.id },
   })
 
   if (existing) {
-    const updated = await prisma.cart.update({
+    const updated = await prisma.cartItem.update({
       where: { id: existing.id },
       data: { quantity: existing.quantity + (quantity || 1) },
     })
     return NextResponse.json(updated)
   }
 
-  const cartItem = await prisma.cart.create({
-    data: { userId: user.id, productId, quantity: quantity || 1 },
+  const cartItem = await prisma.cartItem.create({
+    data: { cartId: cart.id, variantId: variant.id, quantity: quantity || 1 },
   })
 
   return NextResponse.json(cartItem)
@@ -61,9 +104,8 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { cartId } = await req.json()
-
-  await prisma.cart.delete({ where: { id: cartId } })
+  const { cartItemId } = await req.json()
+  await prisma.cartItem.delete({ where: { id: cartItemId } })
 
   return NextResponse.json({ message: 'Deleted' })
 }
