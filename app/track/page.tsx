@@ -1,4 +1,5 @@
 'use client'
+import { Suspense } from 'react'
 import { useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -37,7 +38,7 @@ type Order = {
   }
 }
 
-export default function TrackPage() {
+function TrackContent() {
   const router = useRouter()
   const { data: session } = useSession()
   const searchParams = useSearchParams()
@@ -197,7 +198,7 @@ focus:ring-pink-500 transition disabled:opacity-50 disabled:cursor-not-allowed s
 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               ) : (
-                'តាមដានស្ថានភាពកូដឥឡូវនេះ'
+                'តាមដានស្ថានភាពឥឡូវនេះ'
               )}
             </button>
           </form>
@@ -232,15 +233,14 @@ focus:ring-pink-500 transition disabled:opacity-50 disabled:cursor-not-allowed s
                 {order.items.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-4 py-2 border-b last:border-b-0">
                     <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-{(item.variant?.product?.image || item.product?.image) ? (
-  <img src={item.variant?.product?.image || item.product?.image} alt={item.variant?.product?.name || item.product?.name} className="w-full 
-h-full object-cover" />
+                      {item.product?.image ? (
+                        <img src={item.product.image} alt={item.product.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-xl">🌸</div>
                       )}
                     </div>
                     <div className="flex-1">
-<p className="font-medium text-gray-800">{item.variant?.product?.name || item.product?.name}</p>
+                      <p className="font-medium text-gray-800">{item.product?.name}</p>
                       <p className="text-sm text-gray-500">x{item.quantity}</p>
                     </div>
                     <p className="font-bold text-pink-600">${(item.price * item.quantity).toFixed(2)}</p>
@@ -277,9 +277,6 @@ h-full object-cover" />
                           <span className="text-xs text-gray-400">{formatDate(step.date)}</span>
                         )}
                       </div>
-                      {step.completed && step.status === 'shipped' && order.trackingNumber && (
-                        <p className="text-sm text-pink-500 mt-1">លេខតាមដាន: {order.trackingNumber}</p>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -298,5 +295,13 @@ h-full object-cover" />
         />
       )}
     </div>
+  )
+}
+
+export default function TrackPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">កំពុងផ្ទុក...</div>}>
+      <TrackContent />
+    </Suspense>
   )
 }
