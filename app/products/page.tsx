@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import ProductCard from '@/components/ProductCard'
 
@@ -19,7 +19,7 @@ type PaginationData = {
   totalPages: number
 }
 
-export default function ProductsPage() {
+function ProductsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
@@ -256,5 +256,13 @@ hover:bg-pink-50 disabled:opacity-50 disabled:cursor-not-allowed"
         )}
       </div>
     </div>
+  )
+}
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-pink-500 
+border-t-transparent rounded-full animate-spin"/></div>}>
+      <ProductsContent />
+    </Suspense>
   )
 }
