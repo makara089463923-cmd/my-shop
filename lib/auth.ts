@@ -1,11 +1,14 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
+      name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
@@ -26,11 +29,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!isValid) return null
 
+        console.log('✅ Authorized user:', { id: user.id, name: user.name, email: user.email, role: user.role })
+        
         return {
           id: user.id,
           name: user.name,
           email: user.email,
-          role: user.role,  // ត្រូវតែមាន
+          role: user.role,
         }
       },
     }),
@@ -38,19 +43,37 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: '/login',
   },
-  session: { strategy: 'jwt' },
+  session: { 
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60,
+  },
   callbacks: {
     async jwt({ token, user }) {
+      console.log('🔑 JWT callback - token before:', token)
+      console.log('🔑 JWT callback - user:', user)
       if (user) {
-        token.role = user.role  // ត្រូវតែមាន
+        token.id = user.id
+        token.role = user.role
+        token.name = user.name
+        token.email = user.email
       }
+      console.log('🔑 JWT callback - token after:', token)
       return token
     },
     async session({ session, token }) {
+      console.log('📋 Session callback - session before:', session)
+      console.log('📋 Session callback - token:', token)
       if (session?.user) {
-        session.user.role = token.role as string  // ត្រូវតែមាន
+        session.user.id = token.id as string
+        session.user.role = token.role as string
+        session.user.name = token.name as string
+        session.user.email = token.email as string
       }
+      console.log('📋 Session callback - session after:', session)
       return session
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
+  debug: true,
 })

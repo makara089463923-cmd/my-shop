@@ -1,16 +1,18 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
-import SessionWrapper from '@/components/SessionWrapper'
+import Footer from '@/components/Footer'
 import { CartProvider } from '@/context/CartContext'
+import { NotificationProvider } from '@/context/NotificationContext'
 import { WishlistProvider } from '@/context/WishlistContext'
+import { SessionProvider } from 'next-auth/react'
 
-const geist = Geist({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'MyShop',
-  description: 'Online Shop',
+  title: 'Petal of Praise',
+  description: 'ហាងលក់ផ្កាស្រស់ៗ នាំចូលពីប្រទេសហូឡង់',
 }
 
 export default function RootLayout({
@@ -19,16 +21,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={geist.className}>
-        <SessionWrapper>
+    <html lang="km">
+      <body className={inter.className}>
+        <SessionProvider>
           <CartProvider>
-            <WishlistProvider>
-              <Navbar />
-              <main>{children}</main>
-            </WishlistProvider>
+            <NotificationProvider>  {/* NotificationProvider នៅខាងក្រៅ WishlistProvider */}
+              <WishlistProvider>
+                <Navbar />
+                <main className="min-h-screen">
+                  {children}
+                </main>
+                <Footer />
+              </WishlistProvider>
+            </NotificationProvider>
           </CartProvider>
-        </SessionWrapper>
+        </SessionProvider>
       </body>
     </html>
   )

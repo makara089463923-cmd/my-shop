@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Product | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [showVariantManager, setShowVariantManager] = useState(false)
   const [form, setForm] = useState({
     name: '',
     price: '',
@@ -45,16 +46,18 @@ export default function AdminPage() {
   }, [session, status])
 
   const fetchProducts = async () => {
-    const res = await fetch('/api/admin/products')
-    if (res.ok) {
-      const data = await res.json()
-      setProducts(data)
+    try {
+      const res = await fetch('/api/admin/products')
+      if (res.ok) {
+        const data = await res.json()
+        setProducts(data)
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
-{selectedProduct && (
-  <VariantManager productId={selectedProduct.id} />
-)}
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,38 +68,46 @@ export default function AdminPage() {
 
     const method = editing ? 'PUT' : 'POST'
 
-    const res = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        price: parseFloat(form.price),
-        stock: parseInt(form.stock) || 0,
-        ...(editing && { id: editing.id }),
-      }),
-    })
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          price: parseFloat(form.price),
+          stock: parseInt(form.stock) || 0,
+          ...(editing && { id: editing.id }),
+        }),
+      })
 
-    if (res.ok) {
-      setForm({ name: '', price: '', image: '', stock: '', category: '' })
-      setEditing(null)
-      fetchProducts()
-    } else {
-      const error = await res.json()
-      alert(error.error || 'មានបញ្ហា')
+      if (res.ok) {
+        setForm({ name: '', price: '', image: '', stock: '', category: '' })
+        setEditing(null)
+        fetchProducts()
+      } else {
+        const error = await res.json()
+        alert(error.error || 'មានបញ្ហា')
+      }
+    } catch (error) {
+      alert('មានបញ្ហាក្នុងការភ្ជាប់ម៉ាស៊ីនមេ')
     }
   }
 
   const handleDelete = async (id: string) => {
     if (!confirm('តើចង់លុបផ្កានេះមែនទេ?')) return
 
-    const res = await fetch(`/api/admin/products?id=${id}`, {
-      method: 'DELETE',
-    })
+    try {
+      const res = await fetch(`/api/admin/products?id=${id}`, {
+        method: 'DELETE',
+      })
 
-    if (res.ok) {
-      fetchProducts()
-    } else {
-      alert('លុបមិនបាន')
+      if (res.ok) {
+        fetchProducts()
+      } else {
+        alert('លុបមិនបាន')
+      }
+    } catch (error) {
+      alert('មានបញ្ហាក្នុងការលុប')
     }
   }
 
@@ -109,11 +120,22 @@ export default function AdminPage() {
       stock: product.stock.toString(),
       category: product.category || '',
     })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const cancelEdit = () => {
     setEditing(null)
     setForm({ name: '', price: '', image: '', stock: '', category: '' })
+  }
+
+  const openVariantManager = (product: Product) => {
+    setSelectedProduct(product)
+    setShowVariantManager(true)
+  }
+
+  const closeVariantManager = () => {
+    setSelectedProduct(null)
+    setShowVariantManager(false)
   }
 
   if (loading) {
@@ -129,93 +151,108 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-pink-600 mb-2">🌸 Admin Dashboard</h1>
-          <p className="text-gray-500">គ្រប់គ្រងផ្ការបស់អ្នកបានយ៉ាងងាយស្រួល</p>
+        {/* Header - Responsive */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-pink-600 mb-1 sm:mb-2">
+            🌸 Admin Dashboard
+          </h1>
+          <p className="text-gray-500 text-sm sm:text-base">
+            គ្រប់គ្រងផ្ការបស់អ្នកបានយ៉ាងងាយស្រួល
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-6 mb-8">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-1 h-8 bg-pink-500 rounded-full"></div>
-            <h2 className="text-xl font-bold text-gray-800">
+        {/* Form Section - Responsive */}
+        <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <div className="w-1 h-6 sm:h-8 bg-pink-500 rounded-full"></div>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800">
               {editing ? '✏️ កែប្រែផ្កា' : '➕ បន្ថែមផ្កាថ្មី'}
             </h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ឈ្មោះផ្កា <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                placeholder="ឧទាហរណ៍: ផ្កាកុលាបក្រហម"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                required
-              />
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                  ឈ្មោះផ្កា <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="ឧទាហរណ៍: ផ្កាកុលាបក្រហម"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
+focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                  តម្លៃ (USD) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="ឧទាហរណ៍: 15"
+                  value={form.price}
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
+focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                  URL រូបភាព
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={form.image}
+                  onChange={(e) => setForm({ ...form, image: e.target.value })}
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
+focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                  ចំនួនស្តុក
+                </label>
+                <input
+                  type="number"
+                  placeholder="ឧទាហរណ៍: 50"
+                  value={form.stock}
+                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
+focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                  ប្រភេទ
+                </label>
+                <input
+                  type="text"
+                  placeholder="ឧទាហរណ៍: ផ្កាកុលាប"
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
+focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                តម្លៃ (USD) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                placeholder="ឧទាហរណ៍: 15"
-                value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                URL រូបភាព
-              </label>
-              <input
-                type="text"
-                placeholder="https://..."
-                value={form.image}
-                onChange={(e) => setForm({ ...form, image: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ចំនួនស្តុក
-              </label>
-              <input
-                type="number"
-                placeholder="ឧទាហរណ៍: 50"
-                value={form.stock}
-                onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ប្រភេទ
-              </label>
-              <input
-                type="text"
-                placeholder="ឧទាហរណ៍: ផ្កាកុលាប"
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-              />
-            </div>
-
-            <div className="flex items-end gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 type="submit"
-                className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2.5 rounded-xl transition font-medium shadow-md hover:shadow-lg"
+                className="bg-pink-500 hover:bg-pink-600 text-white px-5 sm:px-6 py-2.5 rounded-xl transition font-medium shadow-md 
+hover:shadow-lg text-sm sm:text-base"
               >
                 {editing ? '💾 រក្សាទុក' : '🌺 បន្ថែមផ្កា'}
               </button>
@@ -223,7 +260,8 @@ export default function AdminPage() {
                 <button
                   type="button"
                   onClick={cancelEdit}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-2.5 rounded-xl transition font-medium"
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 sm:px-6 py-2.5 rounded-xl transition font-medium text-sm 
+sm:text-base"
                 >
                   ❌ បោះបង់
                 </button>
@@ -232,85 +270,125 @@ export default function AdminPage() {
           </form>
         </div>
 
+        {/* Products Table Section - Responsive */}
         <div className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-pink-500 to-pink-600 px-6 py-4">
-            <h2 className="text-white font-bold text-lg">📋 បញ្ជីផ្កាទាំងអស់</h2>
-            <p className="text-pink-100 text-sm mt-1">មានផ្កាសរុប {products.length} ប្រភេទ</p>
+          <div className="bg-gradient-to-r from-pink-500 to-pink-600 px-4 sm:px-6 py-3 sm:py-4">
+            <h2 className="text-white font-bold text-base sm:text-lg">📋 បញ្ជីផ្កាទាំងអស់</h2>
+            <p className="text-pink-100 text-xs sm:text-sm mt-1">មានផ្កាសរុប {products.length} ប្រភេទ</p>
           </div>
 
           <div className="overflow-x-auto">
             {products.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="text-6xl mb-4">🌸</div>
-                <p className="text-gray-400 text-lg">មិនទាន់មានផ្កាទេ</p>
-                <p className="text-gray-400 text-sm mt-1">សូមបន្ថែមផ្កាថ្មីខាងលើ</p>
+              <div className="text-center py-12 sm:py-16">
+                <div className="text-5xl sm:text-6xl mb-4">🌸</div>
+                <p className="text-gray-400 text-base sm:text-lg">មិនទាន់មានផ្កាទេ</p>
+                <p className="text-gray-400 text-xs sm:text-sm mt-1">សូមបន្ថែមផ្កាថ្មីខាងលើ</p>
               </div>
             ) : (
-              <table className="w-full">
+              <table className="w-full min-w-[600px] sm:min-w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-600">រូបភាព</th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-600">ឈ្មោះ</th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-600">តម្លៃ</th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-600">ស្តុក</th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-600">ប្រភេទ</th>
-                    <th className="text-left py-4 px-4 text-sm font-semibold text-gray-600">សកម្មភាព</th>
+                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">រូបភាព</th>
+                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">ឈ្មោះ</th>
+                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">តម្លៃ</th>
+                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">ស្តុក</th>
+                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">ប្រភេទ</th>
+                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">សកម្មភាព</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product) => (
-                    <tr key={product.id} className="border-b border-gray-100 hover:bg-pink-50 transition">
-                      <td className="py-3 px-4">
-                        {product.image ? (
-                          <img 
-                            src={product.image} 
-                            alt={product.name} 
-                            className="w-14 h-14 object-cover rounded-xl shadow-sm"
-                          />
-                        ) : (
-                          <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center text-2xl">
-                            🌸
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 font-medium text-gray-800">{product.name}</td>
-                      <td className="py-3 px-4">
-                        <span className="text-pink-600 font-bold">${product.price.toFixed(2)}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {product.stock > 0 ? `📦 ${product.stock}` : 'ស្តុកអស់'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        {product.category ? (
-                          <span className="bg-pink-100 text-pink-600 px-2 py-1 rounded-full text-xs">
-                            {product.category}
+                  {products.map((product) => {
+                    const stockClass = product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                    return (
+                      <tr key={product.id} className="border-b border-gray-100 hover:bg-pink-50 transition">
+                        <td className="py-2 sm:py-3 px-3 sm:px-4">
+                          {product.image ? (
+                            <img 
+                              src={product.image} 
+                              alt={product.name} 
+                              className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg shadow-sm"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = ''
+                              }}
+                            />
+                          ) : (
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xl 
+sm:text-2xl">
+                              🌸
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2 sm:py-3 px-3 sm:px-4">
+                          <p className="font-medium text-gray-800 text-sm sm:text-base">{product.name}</p>
+                          <button
+                            onClick={() => openVariantManager(product)}
+                            className="text-xs text-pink-500 hover:text-pink-600 mt-1"
+                          >
+                            🎨 គ្រប់គ្រងពូជ
+                          </button>
+                        </td>
+                        <td className="py-2 sm:py-3 px-3 sm:px-4">
+                          <span className="text-pink-600 font-bold text-sm sm:text-base">${product.price.toFixed(2)}</span>
+                        </td>
+                        <td className="py-2 sm:py-3 px-3 sm:px-4">
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${stockClass}`}>
+                            {product.stock > 0 ? `📦 ${product.stock}` : 'ស្តុកអស់'}
                           </span>
-                        ) : '-'}
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => startEdit(product)}
-                          className="text-blue-500 hover:text-blue-700 mr-4 transition"
-                        >
-                          ✏️ កែ
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="text-red-400 hover:text-red-600 transition"
-                        >
-                          🗑️ លុប
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="py-2 sm:py-3 px-3 sm:px-4">
+                          {product.category ? (
+                            <span className="bg-pink-100 text-pink-600 px-2 py-1 rounded-full text-xs">
+                              {product.category}
+                            </span>
+                          ) : '-'}
+                        </td>
+                        <td className="py-2 sm:py-3 px-3 sm:px-4">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            <button
+                              onClick={() => startEdit(product)}
+                              className="text-blue-500 hover:text-blue-700 text-sm transition text-left sm:text-center"
+                            >
+                              ✏️ កែ
+                            </button>
+                            <button
+                              onClick={() => handleDelete(product.id)}
+                              className="text-red-400 hover:text-red-600 text-sm transition text-left sm:text-center"
+                            >
+                              🗑️ លុប
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             )}
           </div>
         </div>
       </div>
+
+      {/* Variant Manager Modal */}
+      {showVariantManager && selectedProduct && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-800">
+                🎨 គ្រប់គ្រងពូជ: {selectedProduct.name}
+              </h3>
+              <button
+                onClick={closeVariantManager}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4">
+              <VariantManager productId={selectedProduct.id} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

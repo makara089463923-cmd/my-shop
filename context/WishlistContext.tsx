@@ -1,40 +1,39 @@
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-
-type WishlistItem = {
-  id: string
-  productId: string
-  product: {
-    id: string
-    name: string
-    price: number
-    image: string | null
-    stock: number
-  }
-}
+import { useNotifications } from './NotificationContext'
 
 type WishlistContextType = {
-  wishlist: WishlistItem[]
-  wishlistCount: number
-  isLoading: boolean
-  addToWishlist: (productId: string) => Promise<boolean>
-  removeFromWishlist: (productId: string) => Promise<boolean>
+  wishlist: any[]
+  loading: boolean
+  addToWishlist: (productId: string) => Promise<void>
+  removeFromWishlist: (productId: string) => Promise<void>
   isInWishlist: (productId: string) => boolean
-  refreshWishlist: () => void
+  refreshWishlist: () => Promise<void>
 }
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined)
 
 export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession()
-  const [wishlist, setWishlist] = useState<WishlistItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [wishlist, setWishlist] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  
+  // Safe access to useNotifications - will work if NotificationProvider is parent
+  let refreshWishlistCount: (() => void) | undefined
+  try {
+    const notifications = useNotifications()
+    refreshWishlistCount = notifications.refreshWishlistCount
+  } catch (e) {
+    // If NotificationProvider not found, just log and continue
+    console.log('NotificationProvider not found, wishlist count will not auto-refresh')
+    refreshWishlistCount = () => {}
+  }
 
   const fetchWishlist = async () => {
-    if (!session) {
+    if (!session?.user?.id) {
       setWishlist([])
-      setIsLoading(false)
+      setLoading(false)
       return
     }
 
@@ -45,20 +44,16 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         setWishlist(data)
       }
     } catch (error) {
-      console.error('Failed to fetch wishlist:', error)
+      console.error('Error fetching wishlist:', error)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchWishlist()
-  }, [session])
-
   const addToWishlist = async (productId: string) => {
-    if (!session) {
+    if (!session?.user?.id) {
       window.location.href = '/login'
-      return false
+      return
     }
 
     try {
@@ -70,29 +65,27 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
 
       if (res.ok) {
         await fetchWishlist()
-        return true
+        if (refreshWishlistCount) refreshWishlistCount()
       }
-      return false
     } catch (error) {
-      console.error('Failed to add to wishlist:', error)
-      return false
+      console.error('Error adding to wishlist:', error)
     }
   }
 
   const removeFromWishlist = async (productId: string) => {
     try {
-      const res = await fetch(`/api/wishlist?productId=${productId}`, {
+      const res = await fetch('/api/wishlist', {
         method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId }),
       })
 
       if (res.ok) {
         await fetchWishlist()
-        return true
+        if (refreshWishlistCount) refreshWishlistCount()
       }
-      return false
     } catch (error) {
-      console.error('Failed to remove from wishlist:', error)
-      return false
+      console.error('Error removing from wishlist:', error)
     }
   }
 
@@ -100,20 +93,19 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     return wishlist.some(item => item.productId === productId)
   }
 
-  const wishlistCount = wishlist.length
+  useEffect(() => {
+    fetchWishlist()
+  }, [session])
 
   return (
-    <WishlistContext.Provider
-      value={{
-        wishlist,
-        wishlistCount,
-        isLoading,
-        addToWishlist,
-        removeFromWishlist,
-        isInWishlist,
-        refreshWishlist: fetchWishlist,
-      }}
-    >
+    <WishlistContext.Provider value={{
+      wishlist,
+      loading,
+      addToWishlist,
+      removeFromWishlist,
+      isInWishlist,
+      refreshWishlist: fetchWishlist,
+    }}>
       {children}
     </WishlistContext.Provider>
   )
