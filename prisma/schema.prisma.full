@@ -17,8 +17,6 @@ model User {
   cart      Cart[]
   wishlist  Wishlist[]
   reviews   Review[]
-  resetToken        String?   // បន្ថែមនេះ
-  resetTokenExpiry  DateTime? // បន្ថែមនេះ
 }
 model Product {
   id        String           @id @default(cuid())
@@ -30,7 +28,6 @@ model Product {
   variants  ProductVariant[]
   wishlist  Wishlist[]
   reviews   Review[]
-}
 
 model ProductVariant {
   id         String   @id @default(cuid())

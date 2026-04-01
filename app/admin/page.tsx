@@ -2,32 +2,36 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import VariantManager from '@/components/VariantManager'
+import Link from 'next/link'
 
-type Product = {
-  id: string
-  name: string
-  price: number
-  image: string | null
-  stock: number
-  category: string | null
+type DashboardStats = {
+  stats: {
+    totalUsers: number
+    totalProducts: number
+    totalOrders: number
+    totalRevenue: number
+  }
+  monthlyRevenue: { month: string; revenue: number }[]
+  recentOrders: {
+    id: string
+    customer: string
+    total: number
+    status: string
+    date: string
+  }[]
+  topProducts: {
+    id: string
+    name: string
+    quantity: number
+    revenue: number
+  }[]
 }
 
-export default function AdminPage() {
+export default function AdminDashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [products, setProducts] = useState<Product[]>([])
+  const [data, setData] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
-  const [editing, setEditing] = useState<Product | null>(null)
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [showVariantManager, setShowVariantManager] = useState(false)
-  const [form, setForm] = useState({
-    name: '',
-    price: '',
-    image: '',
-    stock: '',
-    category: '',
-  })
 
   useEffect(() => {
     if (status === 'loading') return
@@ -42,353 +46,197 @@ export default function AdminPage() {
       return
     }
     
-    fetchProducts()
+    fetchDashboardData()
   }, [session, status])
 
-  const fetchProducts = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const res = await fetch('/api/admin/products')
-      if (res.ok) {
-        const data = await res.json()
-        setProducts(data)
-      }
+      const res = await fetch('/api/admin/analytics')
+      const result = await res.json()
+      setData(result)
     } catch (error) {
-      console.error('Error fetching products:', error)
+      console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const url = editing
-      ? `/api/admin/products?id=${editing.id}`
-      : '/api/admin/products'
-
-    const method = editing ? 'PUT' : 'POST'
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          price: parseFloat(form.price),
-          stock: parseInt(form.stock) || 0,
-          ...(editing && { id: editing.id }),
-        }),
-      })
-
-      if (res.ok) {
-        setForm({ name: '', price: '', image: '', stock: '', category: '' })
-        setEditing(null)
-        fetchProducts()
-      } else {
-        const error = await res.json()
-        alert(error.error || 'មានបញ្ហា')
-      }
-    } catch (error) {
-      alert('មានបញ្ហាក្នុងការភ្ជាប់ម៉ាស៊ីនមេ')
+  const getStatusBadge = (status: string) => {
+    const statusConfig: Record<string, { color: string; text: string }> = {
+      pending: { color: 'bg-yellow-100 text-yellow-700', text: 'កំពុងរង់ចាំ' },
+      processing: { color: 'bg-blue-100 text-blue-700', text: 'កំពុងដំណើរការ' },
+      completed: { color: 'bg-green-100 text-green-700', text: 'បានបញ្ចប់' },
+      cancelled: { color: 'bg-red-100 text-red-700', text: 'បានបោះបង់' },
     }
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('តើចង់លុបផ្កានេះមែនទេ?')) return
-
-    try {
-      const res = await fetch(`/api/admin/products?id=${id}`, {
-        method: 'DELETE',
-      })
-
-      if (res.ok) {
-        fetchProducts()
-      } else {
-        alert('លុបមិនបាន')
-      }
-    } catch (error) {
-      alert('មានបញ្ហាក្នុងការលុប')
-    }
-  }
-
-  const startEdit = (product: Product) => {
-    setEditing(product)
-    setForm({
-      name: product.name,
-      price: product.price.toString(),
-      image: product.image || '',
-      stock: product.stock.toString(),
-      category: product.category || '',
-    })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const cancelEdit = () => {
-    setEditing(null)
-    setForm({ name: '', price: '', image: '', stock: '', category: '' })
-  }
-
-  const openVariantManager = (product: Product) => {
-    setSelectedProduct(product)
-    setShowVariantManager(true)
-  }
-
-  const closeVariantManager = () => {
-    setSelectedProduct(null)
-    setShowVariantManager(false)
+    return statusConfig[status] || { color: 'bg-gray-100 text-gray-700', text: status }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">កំពុងផ្ទុក...</p>
+          <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-500 text-sm">កំពុងផ្ទុក...</p>
         </div>
       </div>
     )
   }
 
+  const stats = data?.stats || {
+    totalUsers: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+  }
+
+  const statCards = [
+    { title: 'អ្នកប្រើប្រាស់', value: stats.totalUsers, icon: '👥', color: 'from-blue-500 to-blue-600', href: '/admin/users' },
+    { title: 'ផលិតផល', value: stats.totalProducts, icon: '📦', color: 'from-green-500 to-green-600', href: '/admin/products' },
+    { title: 'ការបញ្ជាទិញ', value: stats.totalOrders, icon: '🛒', color: 'from-purple-500 to-purple-600', href: '/admin/orders' },
+    { title: 'ចំណូលសរុប', value: `$${stats.totalRevenue.toFixed(2)}`, icon: '💰', color: 'from-pink-500 to-rose-500', href: '/admin/orders' },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        
-        {/* Header - Responsive */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-pink-600 mb-1 sm:mb-2">
-            🌸 Admin Dashboard
-          </h1>
-          <p className="text-gray-500 text-sm sm:text-base">
-            គ្រប់គ្រងផ្ការបស់អ្នកបានយ៉ាងងាយស្រួល
-          </p>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Dashboard</h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-0.5">ស្វាគមន៍មកកាន់ Admin Panel</p>
         </div>
-
-        {/* Form Section - Responsive */}
-        <div className="bg-white rounded-2xl shadow-lg border border-pink-100 p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex items-center gap-2 mb-4 sm:mb-6">
-            <div className="w-1 h-6 sm:h-8 bg-pink-500 rounded-full"></div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800">
-              {editing ? '✏️ កែប្រែផ្កា' : '➕ បន្ថែមផ្កាថ្មី'}
-            </h2>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                  ឈ្មោះផ្កា <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="ឧទាហរណ៍: ផ្កាកុលាបក្រហម"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
-focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                  តម្លៃ (USD) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  placeholder="ឧទាហរណ៍: 15"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
-focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                  URL រូបភាព
-                </label>
-                <input
-                  type="text"
-                  placeholder="https://..."
-                  value={form.image}
-                  onChange={(e) => setForm({ ...form, image: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
-focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                  ចំនួនស្តុក
-                </label>
-                <input
-                  type="number"
-                  placeholder="ឧទាហរណ៍: 50"
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
-focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
-                  ប្រភេទ
-                </label>
-                <input
-                  type="text"
-                  placeholder="ឧទាហរណ៍: ផ្កាកុលាប"
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full border border-gray-300 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm sm:text-base focus:outline-none 
-focus:ring-2 focus:ring-pink-500 focus:border-transparent transition"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                type="submit"
-                className="bg-pink-500 hover:bg-pink-600 text-white px-5 sm:px-6 py-2.5 rounded-xl transition font-medium shadow-md 
-hover:shadow-lg text-sm sm:text-base"
-              >
-                {editing ? '💾 រក្សាទុក' : '🌺 បន្ថែមផ្កា'}
-              </button>
-              {editing && (
-                <button
-                  type="button"
-                  onClick={cancelEdit}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 sm:px-6 py-2.5 rounded-xl transition font-medium text-sm 
-sm:text-base"
-                >
-                  ❌ បោះបង់
-                </button>
-              )}
-            </div>
-          </form>
+        <div className="text-xs text-gray-400">
+          {new Date().toLocaleDateString('km-KH', { year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
+      </div>
 
-        {/* Products Table Section - Responsive */}
-        <div className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-pink-500 to-pink-600 px-4 sm:px-6 py-3 sm:py-4">
-            <h2 className="text-white font-bold text-base sm:text-lg">📋 បញ្ជីផ្កាទាំងអស់</h2>
-            <p className="text-pink-100 text-xs sm:text-sm mt-1">មានផ្កាសរុប {products.length} ប្រភេទ</p>
+      {/* Stats Cards - Responsive grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {statCards.map((stat) => (
+          <Link
+            key={stat.title}
+            href={stat.href}
+            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-3 sm:p-4 border border-gray-100 hover:border-pink-200 group"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-2xl sm:text-3xl">{stat.icon}</span>
+              <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${stat.color} opacity-10 group-hover:opacity-20 transition`} />
+            </div>
+            <p className="text-gray-500 text-xs sm:text-sm">{stat.title}</p>
+            <p className="text-lg sm:text-xl font-bold text-gray-800 mt-1">{stat.value.toLocaleString()}</p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Two Column Layout - Responsive */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Recent Orders */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-3 sm:p-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-800 text-base sm:text-lg">ការបញ្ជាទិញថ្មីៗ</h2>
+            <p className="text-gray-400 text-xs mt-0.5">10 ចុងក្រោយ</p>
           </div>
-
+          
           <div className="overflow-x-auto">
-            {products.length === 0 ? (
-              <div className="text-center py-12 sm:py-16">
-                <div className="text-5xl sm:text-6xl mb-4">🌸</div>
-                <p className="text-gray-400 text-base sm:text-lg">មិនទាន់មានផ្កាទេ</p>
-                <p className="text-gray-400 text-xs sm:text-sm mt-1">សូមបន្ថែមផ្កាថ្មីខាងលើ</p>
-              </div>
-            ) : (
-              <table className="w-full min-w-[600px] sm:min-w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
+            <table className="w-full min-w-[500px]">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  <th className="px-3 sm:px-4 py-2.5 text-left text-xs font-medium text-gray-500">លេខ</th>
+                  <th className="px-3 sm:px-4 py-2.5 text-left text-xs font-medium text-gray-500">អតិថិជន</th>
+                  <th className="px-3 sm:px-4 py-2.5 text-left text-xs font-medium text-gray-500">សរុប</th>
+                  <th className="px-3 sm:px-4 py-2.5 text-left text-xs font-medium text-gray-500">ស្ថានភាព</th>
+                 </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {data?.recentOrders?.slice(0, 5).map((order) => {
+                  const status = getStatusBadge(order.status)
+                  return (
+                    <tr key={order.id} className="hover:bg-gray-50 transition">
+                      <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-gray-600 font-mono">#{order.id.slice(-6)}</td>
+                      <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm text-gray-800 truncate max-w-[120px]">{order.customer}</td>
+                      <td className="px-3 sm:px-4 py-2.5 text-xs sm:text-sm font-medium text-pink-500">${order.total.toFixed(2)}</td>
+                      <td className="px-3 sm:px-4 py-2.5">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                          {status.text}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {(!data?.recentOrders || data.recentOrders.length === 0) && (
                   <tr>
-                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">រូបភាព</th>
-                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">ឈ្មោះ</th>
-                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">តម្លៃ</th>
-                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">ស្តុក</th>
-                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">ប្រភេទ</th>
-                    <th className="text-left py-3 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-semibold text-gray-600">សកម្មភាព</th>
+                    <td colSpan={4} className="px-4 py-8 text-center text-gray-400 text-sm">
+                      មិនទាន់មានការបញ្ជាទិញនៅឡើយទេ
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {products.map((product) => {
-                    const stockClass = product.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    return (
-                      <tr key={product.id} className="border-b border-gray-100 hover:bg-pink-50 transition">
-                        <td className="py-2 sm:py-3 px-3 sm:px-4">
-                          {product.image ? (
-                            <img 
-                              src={product.image} 
-                              alt={product.name} 
-                              className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg shadow-sm"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = ''
-                              }}
-                            />
-                          ) : (
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xl 
-sm:text-2xl">
-                              🌸
-                            </div>
-                          )}
-                        </td>
-                        <td className="py-2 sm:py-3 px-3 sm:px-4">
-                          <p className="font-medium text-gray-800 text-sm sm:text-base">{product.name}</p>
-                          <button
-                            onClick={() => openVariantManager(product)}
-                            className="text-xs text-pink-500 hover:text-pink-600 mt-1"
-                          >
-                            🎨 គ្រប់គ្រងពូជ
-                          </button>
-                        </td>
-                        <td className="py-2 sm:py-3 px-3 sm:px-4">
-                          <span className="text-pink-600 font-bold text-sm sm:text-base">${product.price.toFixed(2)}</span>
-                        </td>
-                        <td className="py-2 sm:py-3 px-3 sm:px-4">
-                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${stockClass}`}>
-                            {product.stock > 0 ? `📦 ${product.stock}` : 'ស្តុកអស់'}
-                          </span>
-                        </td>
-                        <td className="py-2 sm:py-3 px-3 sm:px-4">
-                          {product.category ? (
-                            <span className="bg-pink-100 text-pink-600 px-2 py-1 rounded-full text-xs">
-                              {product.category}
-                            </span>
-                          ) : '-'}
-                        </td>
-                        <td className="py-2 sm:py-3 px-3 sm:px-4">
-                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                            <button
-                              onClick={() => startEdit(product)}
-                              className="text-blue-500 hover:text-blue-700 text-sm transition text-left sm:text-center"
-                            >
-                              ✏️ កែ
-                            </button>
-                            <button
-                              onClick={() => handleDelete(product.id)}
-                              className="text-red-400 hover:text-red-600 text-sm transition text-left sm:text-center"
-                            >
-                              🗑️ លុប
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="p-3 sm:p-4 border-t border-gray-100">
+            <Link href="/admin/orders" className="text-pink-500 hover:text-pink-600 text-xs sm:text-sm font-medium inline-flex items-center gap-1">
+              មើលទាំងអស់
+              <span>→</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Top Products */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-3 sm:p-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-800 text-base sm:text-lg">ផលិតផលលក់ដាច់ជាងគេ</h2>
+            <p className="text-gray-400 text-xs mt-0.5">តាមចំនួនការលក់</p>
+          </div>
+          
+          <div className="divide-y divide-gray-50">
+            {data?.topProducts?.slice(0, 5).map((product, index) => (
+              <div key={product.id} className="p-3 sm:p-4 flex items-center justify-between hover:bg-gray-50 transition">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    {index + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-gray-800 text-xs sm:text-sm truncate">{product.name}</p>
+                    <p className="text-gray-400 text-xs">បានលក់ {product.quantity} ដុំ</p>
+                  </div>
+                </div>
+                <p className="font-semibold text-pink-500 text-xs sm:text-sm ml-2 flex-shrink-0">${product.revenue.toFixed(2)}</p>
+              </div>
+            ))}
+            {(!data?.topProducts || data.topProducts.length === 0) && (
+              <div className="p-6 text-center text-gray-400 text-sm">
+                មិនទាន់មានទិន្នន័យលក់នៅឡើយទេ
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Variant Manager Modal */}
-      {showVariantManager && selectedProduct && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-800">
-                🎨 គ្រប់គ្រងពូជ: {selectedProduct.name}
-              </h3>
-              <button
-                onClick={closeVariantManager}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-4">
-              <VariantManager productId={selectedProduct.id} />
-            </div>
+      {/* Monthly Revenue - Responsive */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="p-3 sm:p-4 border-b border-gray-100">
+          <h2 className="font-semibold text-gray-800 text-base sm:text-lg">ចំណូលប្រចាំខែ</h2>
+          <p className="text-gray-400 text-xs mt-0.5">7 ខែកន្លងមក</p>
+        </div>
+        <div className="p-3 sm:p-4">
+          <div className="space-y-2 sm:space-y-3">
+            {data?.monthlyRevenue?.map((month) => (
+              <div key={month.month} className="flex items-center gap-2 sm:gap-4">
+                <div className="w-12 sm:w-16 text-xs sm:text-sm font-medium text-gray-600">{month.month}</div>
+                <div className="flex-1">
+                  <div 
+                    className="h-6 sm:h-7 bg-gradient-to-r from-pink-500 to-rose-500 rounded-md transition-all"
+                    style={{ width: `${Math.min(100, (month.revenue / 5000) * 100)}%` }}
+                  />
+                </div>
+                <div className="w-20 sm:w-24 text-right text-xs sm:text-sm font-semibold text-pink-500">
+                  ${month.revenue.toFixed(2)}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }
