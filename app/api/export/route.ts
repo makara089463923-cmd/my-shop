@@ -9,15 +9,15 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const orders = await prisma.order.findMany({
-    include: {
-      user: { select: { name: true, email: true } },
-      items: {
-        include: { product: { select: { name: true } } },
-      },
+const orders = await prisma.order.findMany({
+  include: {
+    user: { select: { name: true, email: true } },
+    items: {
+      include: { variant: { include: { product: { select: { name: true } } } } },
     },
-    orderBy: { createdAt: 'desc' },
-  })
+  },
+  orderBy: { createdAt: 'desc' },
+})
 
   const rows = orders.flatMap(order =>
     order.items.map(item => ({
