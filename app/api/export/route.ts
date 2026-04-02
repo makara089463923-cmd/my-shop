@@ -24,7 +24,7 @@ const orders = await prisma.order.findMany({
       'Order ID': order.id,
       'Customer Name': order.user.name,
       'Customer Email': order.user.email,
-      'Product': item.product.name,
+      'Product': item.variant?.product?.name || item.product?.name || 'N/A',
       'Quantity': item.quantity,
       'Price': `$${item.price.toFixed(2)}`,
       'Total': `$${order.total.toFixed(2)}`,
