@@ -19,19 +19,19 @@ const orders = await prisma.order.findMany({
   orderBy: { createdAt: 'desc' },
 })
 
-  const rows = orders.flatMap(order =>
-    order.items.map(item => ({
-      'Order ID': order.id,
-      'Customer Name': order.user.name,
-      'Customer Email': order.user.email,
-      'Product': item.variant?.product?.name || item.product?.name || 'N/A',
-      'Quantity': item.quantity,
-      'Price': `$${item.price.toFixed(2)}`,
-      'Total': `$${order.total.toFixed(2)}`,
-      'Status': order.status,
-      'Date': new Date(order.createdAt).toLocaleDateString(),
-    }))
-  )
+const rows = orders.flatMap(order =>
+  order.items.map(item => ({
+    'Order ID': order.id,
+    'Customer Name': order.user.name,
+    'Customer Email': order.user.email,
+    'Product': (item as any).variant?.product?.name || 'N/A',
+    'Quantity': item.quantity,
+    'Price': `$${item.price.toFixed(2)}`,
+    'Total': `$${order.total.toFixed(2)}`,
+    'Status': order.status,
+    'Date': new Date(order.createdAt).toLocaleDateString(),
+  }))
+)
 
   const worksheet = XLSX.utils.json_to_sheet(rows)
   const workbook = XLSX.utils.book_new()
