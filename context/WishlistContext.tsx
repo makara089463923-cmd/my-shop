@@ -5,6 +5,7 @@ import { useNotifications } from './NotificationContext'
 
 type WishlistContextType = {
   wishlist: any[]
+  wishlistCount: number  // ← បន្ថែមនេះ
   loading: boolean
   addToWishlist: (productId: string) => Promise<void>
   removeFromWishlist: (productId: string) => Promise<void>
@@ -100,6 +101,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   return (
     <WishlistContext.Provider value={{
       wishlist,
+      wishlistCount: wishlist.length,  // ← បន្ថែមនេះ
       loading,
       addToWishlist,
       removeFromWishlist,
@@ -118,3 +120,5 @@ export function useWishlist() {
   }
   return context
 }
+
+
