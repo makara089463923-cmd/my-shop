@@ -6,7 +6,7 @@ import Toast from '@/components/ui/Toast'
 import { useState } from 'react'
 
 export default function WishlistPage() {
-​​  const { wishlist, wishlistCount, loading, removeFromWishlist, refreshWishlist } = useWishlist()
+const { wishlist, wishlistCount, loading, removeFromWishlist, refreshWishlist } = useWishlist()
   const { addToCart } = useCart()
   const router = useRouter()
   const [showToast, setShowToast] = useState(false)
