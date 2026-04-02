@@ -1,96 +1,119 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import * as XLSX from 'xlsx'
 
-export async function GET() {
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const session = await auth()
-    
-    // Check authentication
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { id } = await params
 
-    // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { role: true },
-    })
-
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Forbidden - Admin only' }, { status: 403 })
-    }
-
-    // Fetch all orders
-    const orders = await prisma.order.findMany({
+    const reviews = await prisma.review.findMany({
+      where: { productId: id },
       include: {
-        user: { select: { name: true, email: true } },
-        items: {
-          include: { 
-            variant: { 
-              include: { 
-                product: { select: { name: true } } 
-              } 
-            } 
-          },
-        },
+        user: { select: { name: true } },
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    // Transform data for Excel
-    const rows = orders.flatMap(order =>
-      order.items.map(item => ({
-        'Order ID': order.id,
-        'Order Date': new Date(order.createdAt).toLocaleDateString('km-KH'),
-        'Customer Name': order.user.name,
-        'Customer Email': order.user.email,
-        'Product Name': (item as any).variant?.product?.name || 'N/A',
-        'Quantity': item.quantity,
-        'Unit Price': `$${item.price.toFixed(2)}`,
-        'Subtotal': `$${(item.price * item.quantity).toFixed(2)}`,
-        'Order Total': `$${order.total.toFixed(2)}`,
-        'Order Status': order.status,
-      }))
+    return NextResponse.json(reviews)
+  } catch (error) {
+    console.error('Error fetching reviews:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch reviews' },
+      { status: 500 }
     )
+  }
+}
 
-    // Create Excel worksheet
-    const worksheet = XLSX.utils.json_to_sheet(rows)
-    
-    // Set column widths
-    worksheet['!cols'] = [
-      { wch: 25 }, // Order ID
-      { wch: 12 }, // Order Date
-      { wch: 20 }, // Customer Name
-      { wch: 25 }, // Customer Email
-      { wch: 30 }, // Product Name
-      { wch: 10 }, // Quantity
-      { wch: 12 }, // Unit Price
-      { wch: 12 }, // Subtotal
-      { wch: 12 }, // Order Total
-      { wch: 15 }, // Order Status
-    ]
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Create workbook
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Orders')
+    const { id } = await params
+    const { rating, comment } = await req.json()
 
-    // Generate buffer
-    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })
+    if (!rating || rating < 1 || rating > 5) {
+      return NextResponse.json(
+        { error: 'Rating must be between 1 and 5' },
+        { status: 400 }
+      )
+    }
 
-    // Return file
-    return new NextResponse(buffer, {
-      headers: {
-        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="orders_${new Date().toISOString().slice(0, 10)}.xlsx"`,
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    })
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Check if user has purchased this product
+    const hasPurchased = await prisma.orderItem.findFirst({
+      where: {
+        variant: {
+          productId: id,
+        },
+        order: {
+          userId: user.id,
+          status: { in: ['completed', 'processing'] },
+        },
       },
     })
 
+    if (!hasPurchased) {
+      return NextResponse.json(
+        { error: 'You can only review products you have purchased' },
+        { status: 403 }
+      )
+    }
+
+    // Check if user already reviewed
+    const existingReview = await prisma.review.findUnique({
+      where: {
+        userId_productId: {
+          userId: user.id,
+          productId: id,
+        },
+      },
+    })
+
+    let review
+    if (existingReview) {
+      // Update existing review
+      review = await prisma.review.update({
+        where: {
+          userId_productId: {
+            userId: user.id,
+            productId: id,
+          },
+        },
+        data: { rating, comment },
+      })
+    } else {
+      // Create new review
+      review = await prisma.review.create({
+        data: {
+          userId: user.id,
+          productId: id,
+          rating,
+          comment,
+        },
+      })
+    }
+
+    return NextResponse.json(review)
   } catch (error) {
-    console.error('Export error:', error)
+    console.error('Error posting review:', error)
     return NextResponse.json(
-      { error: 'Failed to export orders' },
+      { error: 'Failed to post review' },
       { status: 500 }
     )
   }
