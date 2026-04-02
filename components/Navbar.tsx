@@ -64,7 +64,8 @@ export default function Navbar() {
                 priority
               />
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent hidden sm:block">
+            <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent hidden 
+sm:block">
               Petal of Praise
             </span>
           </Link>
@@ -77,12 +78,15 @@ export default function Navbar() {
                 placeholder="ស្វែងរកផ្កា..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm"
+                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 
+focus:ring-pink-500 text-sm"
               />
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" 
+stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-pink-500 text-white px-3 py-1 rounded-full text-xs">
+              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-pink-500 text-white px-3 py-1 
+rounded-full text-xs">
                 ស្វែងរក
               </button>
             </div>
@@ -131,7 +135,8 @@ export default function Navbar() {
                     <Link href="/settings" className="block px-3 py-2 text-sm hover:bg-pink-50" onClick={() => setShowSettings(false)}>
                       ⚙️ ការកំណត់
                     </Link>
-                    <button onClick={() => { signOut({ callbackUrl: '/' }); setShowSettings(false) }} className="block w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50">
+                    <button onClick={() => { signOut({ callbackUrl: '/' }); setShowSettings(false) }} className="block w-full text-left 
+px-3 py-2 text-sm text-red-500 hover:bg-red-50">
                       🚪 Logout
                     </button>
                   </div>
@@ -155,12 +160,15 @@ export default function Navbar() {
                 placeholder="ស្វែងរកផ្កា..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm"
+                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 
+focus:ring-pink-500 text-sm"
               />
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" 
+stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-pink-500 text-white px-3 py-1 rounded-full text-xs">
+              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-pink-500 text-white px-3 py-1 
+rounded-full text-xs">
                 ស្វែងរក
               </button>
             </div>
@@ -170,20 +178,21 @@ export default function Navbar() {
         {/* Desktop Menu - All items in row */}
         <div className="hidden sm:block mt-4 overflow-x-auto pb-2">
           <div className="flex flex-wrap gap-3 items-center">
-            {menuItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="text-gray-600 hover:text-pink-600 text-sm font-medium whitespace-nowrap relative"
-              >
-                {item.icon} {item.label}
-                {item.badge > 0 && (
-                  <span className={`absolute -top-2 -right-3 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center ${item.badgeColor === 'green' ? 'bg-green-500' : 'bg-pink-500'}`}>
-                    {item.badge > 99 ? '99+' : item.badge}
-                  </span>
-                )}
-              </Link>
-            ))}
+          {menuItems.map((item) => (
+  <Link
+    key={item.href}
+    href={item.href}
+    className="text-gray-600 hover:text-pink-600 text-sm font-medium whitespace-nowrap relative"
+  >
+    {item.icon} {item.label}
+    {item.badge !== undefined && item.badge > 0 && (
+      <span className={`absolute -top-2 -right-3 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center 
+${item.badgeColor === 'green' ? 'bg-green-500' : 'bg-pink-500'}`}>
+        {item.badge > 99 ? '99+' : item.badge}
+      </span>
+    )}
+  </Link>
+))}
           </div>
         </div>
 
@@ -191,21 +200,22 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="sm:hidden mt-4 pt-4 border-t border-gray-100">
             <div className="flex flex-col gap-3">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-gray-600 hover:text-pink-600 py-2 flex items-center gap-2"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span>{item.icon}</span> {item.label}
-                  {item.badge > 0 && (
-                    <span className={`text-white text-xs w-5 h-5 rounded-full flex items-center justify-center ${item.badgeColor === 'green' ? 'bg-green-500' : 'bg-pink-500'}`}>
-                      {item.badge > 99 ? '99+' : item.badge}
-                    </span>
-                  )}
-                </Link>
-              ))}
+            {menuItems.map((item) => (
+  <Link
+    key={item.href}
+    href={item.href}
+    className="text-gray-600 hover:text-pink-600 py-2 flex items-center gap-2"
+    onClick={() => setMobileMenuOpen(false)}
+  >
+    <span>{item.icon}</span> {item.label}
+    {item.badge !== undefined && item.badge > 0 && (
+      <span className={`text-white text-xs w-5 h-5 rounded-full flex items-center justify-center ${item.badgeColor === 'green' ? 
+'bg-green-500' : 'bg-pink-500'}`}>
+        {item.badge > 99 ? '99+' : item.badge}
+      </span>
+    )}
+  </Link>
+))}
               
               {session?.user?.role === 'ADMIN' && (
                 <Link href="/admin" className="text-pink-600 py-2" onClick={() => setMobileMenuOpen(false)}>
@@ -230,7 +240,8 @@ export default function Navbar() {
                   <Link href="/login" className="text-gray-600 py-2" onClick={() => setMobileMenuOpen(false)}>
                     🔑 Login
                   </Link>
-                  <Link href="/register" className="bg-pink-500 text-white px-4 py-2 rounded-lg text-center" onClick={() => setMobileMenuOpen(false)}>
+                  <Link href="/register" className="bg-pink-500 text-white px-4 py-2 rounded-lg text-center" onClick={() => 
+setMobileMenuOpen(false)}>
                     📝 Register
                   </Link>
                 </>
@@ -242,3 +253,4 @@ export default function Navbar() {
     </nav>
   )
 }
+
