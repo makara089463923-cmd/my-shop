@@ -66,13 +66,11 @@ export default function ProductCard({ product }: { product: Product }) {
       setToastType('success')
       setShowToast(true)
     } else {
-      const success = await addToWishlist(product.id)
-      if (success) {
-        setIsWishlisted(true)
-        setToastMessage(`✓ បានបន្ថែម ${product.name} ទៅ Wishlist`)
-        setToastType('success')
-        setShowToast(true)
-      }
+      await addToWishlist(product.id)
+      setIsWishlisted(true)
+      setToastMessage(`✓ បានបន្ថែម ${product.name} ទៅ Wishlist`)
+      setToastType('success')
+      setShowToast(true)
     }
 
     setWishlistLoading(false)
@@ -209,3 +207,5 @@ flex items-center justify-center gap-1"
     </>
   )
 }
+
+
