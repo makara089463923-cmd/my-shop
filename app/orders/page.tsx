@@ -8,10 +8,12 @@ type OrderItem = {
   id: string
   quantity: number
   price: number
-  product: {
-    id: string
-    name: string
-    image: string | null
+  variant: {
+    product: {
+      id: string
+      name: string
+      image: string | null
+    }
   }
 }
 
@@ -211,18 +213,16 @@ transition">
                   {order.items.map((item) => (
                     <div key={item.id} className="flex items-center gap-4 py-3 border-b last:border-b-0">
                       <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-{(item.variant?.product?.image || item.product?.image) ? (
+                      {item.variant?.product?.image ? (
   <img 
-    src={item.variant?.product?.image || item.product?.image} 
-    alt={item.variant?.product?.name || item.product?.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-2xl">🌸</div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-<h3 className="font-medium text-gray-800">{item.variant?.product?.name || item.product?.name}</h3>
+    src={item.variant.product.image} 
+    alt={item.variant.product.name}
+    className="w-full h-full object-cover"
+  />
+) : (
+  <div className="w-full h-full flex items-center justify-center text-2xl">🌸</div>
+)}
+<h3 className="font-medium text-gray-800">{item.variant?.product?.name || 'ផលិតផល'}</h3>
                         <div className="flex gap-3 text-sm text-gray-500 mt-1">
                           <span>ចំនួន: {item.quantity}</span>
                           <span>តម្លៃ: ${item.price.toFixed(2)}</span>
@@ -252,7 +252,8 @@ transition">
                     </div>
                     <Link
                       href={`/track?orderId=${order.id}`}
-                      className="bg-pink-50 hover:bg-pink-100 text-pink-600 px-4 py-2 rounded-lg text-sm transition flex items-center gap-2"
+                      className="bg-pink-50 hover:bg-pink-100 text-pink-600 px-4 py-2 rounded-lg text-sm transition flex items-center 
+gap-2"
                     >
                       🔍 តាមដានការដឹកជញ្ជូន
                       <span className="text-xs text-pink-400">(លេខ #{order.id.slice(-8)})</span>
@@ -267,3 +268,4 @@ transition">
     </div>
   )
 }
+
