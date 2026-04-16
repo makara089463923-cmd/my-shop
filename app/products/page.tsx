@@ -146,7 +146,7 @@ function ProductsContent() {
             <div className="mb-4">
               <div className="h-4 bg-gray-200 rounded w-32"></div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="bg-white rounded-xl shadow-sm border overflow-hidden animate-pulse">
                   <div className="aspect-square bg-gray-200"></div>
@@ -189,7 +189,7 @@ function ProductsContent() {
               </div>
               
               {/* Responsive Grid - Mobile: 2 columns, Desktop: up to 5 columns */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

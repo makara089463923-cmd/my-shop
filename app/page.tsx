@@ -1,6 +1,10 @@
+'use client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ShoppingCart, Heart, Star, Truck, ShieldCheck, Clock, RefreshCw, Eye } from 'lucide-react'
+import { ShoppingCart, Heart, Star, Truck, ShieldCheck, Clock, RefreshCw } from 'lucide-react'
+import { useCart } from '@/context/CartContext'
+import { useState } from 'react'
+import Toast from '@/components/ui/Toast'
 
 const featuredProducts = [
   {
@@ -93,19 +97,42 @@ const featuredProducts = [
   },
 ]
 
-const categories = [
-  { name: 'កាបូបស្ពាយ', icon: '🎒', color: 'from-blue-500 to-indigo-500', href: '/products?category=backpack', count: 24 },
-  { name: 'អាវយឺត', icon: '👕', color: 'from-green-500 to-teal-500', href: '/products?category=tshirt', count: 45 },
-  { name: 'មួក', icon: '🧢', color: 'from-orange-500 to-red-500', href: '/products?category=cap', count: 18 },
-  { name: 'ស្បែកជើង', icon: '👟', color: 'from-purple-500 to-pink-500', href: '/products?category=shoes', count: 32 },
-  { name: 'អាវវែង', icon: '👔', color: 'from-cyan-500 to-blue-500', href: '/products?category=shirt', count: 28 },
-  { name: 'កីឡា', icon: '⚽', color: 'from-red-500 to-orange-500', href: '/products?category=sports', count: 22 },
-]
-
 export default function HomePage() {
+  const { addToCart } = useCart()
+  const [addingId, setAddingId] = useState<number | null>(null)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+  const [toastType, setToastType] = useState<'success' | 'error'>('success')
+
+  const handleAddToCart = async (productId: number, productName: string) => {
+    setAddingId(productId)
+    try {
+      await addToCart(productId.toString())
+      setToastMessage(`✓ បានបន្ថែម ${productName} ទៅកន្ត្រកហើយ!`)
+      setToastType('success')
+      setShowToast(true)
+    } catch (error) {
+      setToastMessage('មានបញ្ហា សូមសាកម្តងទៀត')
+      setToastType('error')
+      setShowToast(true)
+    } finally {
+      setAddingId(null)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       
+      {/* Toast Notification */}
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+          duration={3000}
+        />
+      )}
+
       {/* Hero Banner */}
       <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -164,13 +191,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Featured Products */}
+      {/* Featured Products - Same grid as Products page */}
       <div className="py-8 sm:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center mb-6 sm:mb-12">
             <div>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">✨ ផលិតផលពេញនិយម</h2>
-              <p className="text-gray-500 text-xs sm:text-sm md:text-base">សម្លៀកបំពាក់ដែលអតិថិជនចូលចិត្តបំផុត</p>
+              <p className="text-gray-500 text-xs sm:text-sm md:text-base">ផលិតផលដែលអតិថិជនចូលចិត្តបំផុត</p>
             </div>
             <Link href="/products" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 text-xs sm:text-sm md:text-base">
               មើលទាំងអស់
@@ -178,30 +205,31 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+          {/* Same grid as Products page: 2 columns on mobile, 5 on desktop */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {featuredProducts.map((product) => (
-              <div key={product.id} className="group relative bg-white rounded-lg sm:rounded-xl md:rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300">
+              <div key={product.id} className="group relative bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300">
                 {/* Discount Badge */}
                 {product.discount && (
-                  <div className="absolute top-1 left-1 sm:top-2 sm:left-2 md:top-3 md:left-3 z-10 bg-red-500 text-white text-[8px] sm:text-[10px] md:text-xs font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 md:px-2 md:py-1 rounded-full">
+                  <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 bg-red-500 text-white text-[8px] sm:text-[10px] font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 rounded-full">
                     -{product.discount}%
                   </div>
                 )}
                 
                 {/* Tag Badge */}
                 {product.tag && (
-                  <div className="absolute top-1 right-1 sm:top-2 sm:right-2 md:top-3 md:right-3 z-10 bg-orange-500 text-white text-[8px] sm:text-[10px] md:text-xs font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 md:px-2 md:py-1 rounded-full">
+                  <div className="absolute top-1 right-1 sm:top-2 sm:right-2 z-10 bg-orange-500 text-white text-[8px] sm:text-[10px] font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 rounded-full">
                     {product.tag}
                   </div>
                 )}
                 
                 {/* Wishlist Button */}
-                <button className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10 bg-white/80 backdrop-blur-sm p-1 sm:p-1.5 md:p-2 rounded-full hover:bg-red-500 hover:text-white transition-all">
-                  <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
+                <button className="absolute bottom-2 right-2 z-10 bg-white/80 backdrop-blur-sm p-1 sm:p-1.5 rounded-full hover:bg-red-500 hover:text-white transition-all">
+                  <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </button>
 
-                {/* Product Image */}
-                <div className="relative h-32 sm:h-44 md:h-64 lg:h-80 overflow-hidden bg-gray-100">
+                {/* Product Image - Same aspect-square as Products page */}
+                <div className="relative aspect-square overflow-hidden bg-gray-100">
                   <Image
                     src={product.image}
                     alt={product.name}
@@ -211,18 +239,18 @@ export default function HomePage() {
                 </div>
 
                 {/* Product Info */}
-                <div className="p-1.5 sm:p-2 md:p-4">
-                  <h3 className="font-semibold text-gray-800 mb-0.5 sm:mb-1 md:mb-2 group-hover:text-blue-600 transition line-clamp-1 text-[10px] sm:text-xs md:text-base">
+                <div className="p-1.5 sm:p-2">
+                  <h3 className="font-semibold text-gray-800 mb-0.5 sm:mb-1 group-hover:text-blue-600 transition line-clamp-1 text-[10px] sm:text-xs">
                     {product.name}
                   </h3>
                   
                   {/* Rating */}
-                  <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1 md:mb-2">
+                  <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-3 md:h-3 ${
+                          className={`w-1.5 h-1.5 sm:w-2 sm:h-2 ${
                             i < Math.floor(product.rating)
                               ? 'text-yellow-400 fill-yellow-400'
                               : 'text-gray-300'
@@ -230,25 +258,38 @@ export default function HomePage() {
                         />
                       ))}
                     </div>
-                    <span className="text-[6px] sm:text-[8px] md:text-xs text-gray-500">({product.reviews})</span>
+                    <span className="text-[6px] sm:text-[8px] text-gray-500">({product.reviews})</span>
                   </div>
 
                   {/* Price */}
-                  <div className="flex items-center gap-0.5 sm:gap-1 md:gap-2 mb-1 sm:mb-2 md:mb-3">
-                    <span className="text-[10px] sm:text-sm md:text-2xl font-bold text-blue-600">
+                  <div className="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-2">
+                    <span className="text-[10px] sm:text-sm font-bold text-blue-600">
                       ${product.price}
                     </span>
                     {product.originalPrice && (
-                      <span className="text-[6px] sm:text-[8px] md:text-sm text-gray-400 line-through">
+                      <span className="text-[6px] sm:text-[8px] text-gray-400 line-through">
                         ${product.originalPrice}
                       </span>
                     )}
                   </div>
 
                   {/* Add to Cart Button */}
-                  <button className="w-full bg-gray-100 text-gray-800 py-1 sm:py-1.5 md:py-2 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-0.5 sm:gap-1 md:gap-2">
-                    <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
-                    <span className="text-[8px] sm:text-[10px] md:text-sm font-medium">បន្ថែម</span>
+                  <button 
+                    onClick={() => handleAddToCart(product.id, product.name)}
+                    disabled={addingId === product.id}
+                    className="w-full bg-gray-100 text-gray-800 py-1 sm:py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-0.5 sm:gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {addingId === product.id ? (
+                      <svg className="animate-spin w-2 h-2 sm:w-2.5 sm:h-2.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : (
+                      <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                    )}
+                    <span className="text-[8px] sm:text-[10px] font-medium">
+                      {addingId === product.id ? 'កំពុងបន្ថែម...' : 'បន្ថែម'}
+                    </span>
                   </button>
                 </div>
               </div>
