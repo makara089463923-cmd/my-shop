@@ -8,7 +8,7 @@ const featuredProducts = [
     name: 'Multi Pocket School Backpack',
     price: 49.59,
     originalPrice: 59.99,
-    image: '/images/backpack.jpg',
+    image: '/images/logo.png',
     rating: 4.8,
     reviews: 128,
     discount: 20,
@@ -163,128 +163,7 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-
-      {/* Categories Section
-      <div className="py-16">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
-              ជ្រើសរើសប្រភេទសម្លៀកបំពាក់
-            </h2>
-            <div className="w-24 h-1 bg-blue-600 mx-auto rounded-full"></div>
-            <p className="text-gray-500 mt-4">ស្វែងរកសម្លៀកបំពាក់ដែលអ្នកស្រលាញ់</p>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.name}
-                href={cat.href}
-                className={`bg-gradient-to-br ${cat.color} rounded-2xl p-6 text-center hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 group`}
-              >
-                <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">
-                  {cat.icon}
-                </div>
-                <h3 className="text-white font-bold text-sm mb-1">{cat.name}</h3>
-                <p className="text-white/80 text-xs">{cat.count} ផលិតផល</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div> */}
-
-      {/* Flash Sale Products */}
-      <div className="py-16 bg-gradient-to-br from-red-50 to-orange-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center mb-12">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">⚡ Flash Sale ⚡</h2>
-              <p className="text-gray-500">កុំខកខានឱកាសល្អៗ</p>
-            </div>
-            <Link href="/products" className="text-red-500 hover:text-red-600 font-semibold flex items-center gap-1">
-              មើលទាំងអស់
-              <span className="text-xl">→</span>
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.slice(0, 4).map((product) => (
-              <div key={product.id} className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300">
-                {/* Discount Badge */}
-                {product.discount && (
-                  <div className="absolute top-3 left-3 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    -{product.discount}%
-                  </div>
-                )}
-                
-                {/* Tag Badge */}
-                {product.tag && (
-                  <div className="absolute top-3 right-3 z-10 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    {product.tag}
-                  </div>
-                )}
-                
-                {/* Wishlist Button */}
-                <button className="absolute bottom-3 right-3 z-10 bg-white/80 backdrop-blur-sm p-2 rounded-full hover:bg-red-500 hover:text-white transition-all">
-                  <Heart className="w-4 h-4" />
-                </button>
-
-                {/* Product Image */}
-                <div className="relative h-64 overflow-hidden bg-gray-100">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-
-                {/* Product Info */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-gray-800 mb-2 group-hover:text-red-500 transition line-clamp-1">
-                    {product.name}
-                  </h3>
-                  
-                  {/* Rating */}
-                  <div className="flex items-center gap-1 mb-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-3 h-3 ${
-                            i < Math.floor(product.rating)
-                              ? 'text-yellow-400 fill-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-gray-500">({product.reviews})</span>
-                  </div>
-
-                  {/* Price */}
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-2xl font-bold text-red-500">
-                      ${product.price}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="text-sm text-gray-400 line-through">
-                        ${product.originalPrice}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Add to Cart Button */}
-                  <button className="w-full bg-gray-100 text-gray-800 py-2 rounded-lg hover:bg-red-500 hover:text-white transition-all duration-300 flex items-center justify-center gap-2 group">
-                    <ShoppingCart className="w-4 h-4" />
-                    <span className="text-sm font-medium">បន្ថែមទៅកន្ត្រក</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+     
 
       {/* Featured Products */}
       <div className="py-16 bg-white">
