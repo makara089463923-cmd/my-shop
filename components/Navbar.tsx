@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useCart } from '@/context/CartContext'
 import { useNotifications } from '@/context/NotificationContext'
 import Image from 'next/image'
+import { Search, ShoppingCart, Heart, Home, Package, ClipboardList, Truck, Mail, Settings, LogOut, LogIn, UserPlus, Menu, X, ChevronDown } from 'lucide-react'
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showSettings, setShowSettings] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
@@ -33,29 +35,31 @@ export default function Navbar() {
     if (searchTerm.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchTerm)}`)
       setSearchTerm('')
+      setMobileSearchOpen(false)
     }
   }
 
   // Menu items
   const menuItems = [
-    { href: '/', icon: '🏠', label: 'Home' },
-    { href: '/products', icon: '🌸', label: 'Products' },
-    { href: '/wishlist', icon: '💖', label: 'Wishlist', badge: wishlistCount, badgeColor: 'pink' },
-    { href: '/cart', icon: '🛒', label: 'Cart', badge: cartCount, badgeColor: 'pink' },
-    { href: '/orders', icon: '📋', label: 'Orders', badge: orderCount, badgeColor: 'green' },
-    { href: '/track', icon: '📦', label: 'Track' },
-    { href: '/contact', icon: '📧', label: 'Contact' },
+    { href: '/', icon: Home, label: 'ទំព័រដើម' },
+    { href: '/products', icon: Package, label: 'ផលិតផល' },
+    { href: '/wishlist', icon: Heart, label: 'សំណព្វចិត្ត', badge: wishlistCount, badgeColor: 'pink' },
+    { href: '/cart', icon: ShoppingCart, label: 'កន្ត្រក', badge: cartCount, badgeColor: 'pink' },
+    { href: '/orders', icon: ClipboardList, label: 'ការបញ្ជា', badge: orderCount, badgeColor: 'green' },
+    { href: '/track', icon: Truck, label: 'តាមដាន' },
+    { href: '/contact', icon: Mail, label: 'ទំនាក់ទំនង' },
   ]
 
   return (
-    <nav className="bg-white border-b shadow-sm sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3">
+    <nav className="bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Logo and Search Row */}
-        <div className="flex items-center justify-between gap-3">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <div className="relative w-10 h-10 overflow-hidden rounded-full shadow-md">
+        {/* Main Navbar Row */}
+        <div className="flex items-center justify-between h-16 gap-4">
+          
+          {/* Logo Section */}
+          <Link href="/" className="flex items-center gap-2 shrink-0 group">
+            <div className="relative w-10 h-10 overflow-hidden rounded-full shadow-md group-hover:shadow-lg transition-shadow">
               <Image
                 src="/images/logo.png"
                 alt="Logo"
@@ -64,187 +68,195 @@ export default function Navbar() {
                 priority
               />
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent hidden 
-sm:block">
-              Petal of Praise
+            <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hidden sm:block">
+            ​Petal of Praise
             </span>
           </Link>
 
-          {/* Search Bar - Hidden on mobile */}
-          <form onSubmit={handleSearch} className="hidden sm:block flex-1 max-w-md">
-            <div className="relative w-full">
+          {/* Desktop Search Bar */}
+          <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-md">
+            <div className="relative">
               <input
                 type="text"
-                placeholder="ស្វែងរកផ្កា..."
+                placeholder="ស្វែងរកផលិតផល..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 
-focus:ring-pink-500 text-sm"
+                className="w-full pl-10 pr-20 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-gray-50 hover:bg-white transition"
               />
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" 
-stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-pink-500 text-white px-3 py-1 
-rounded-full text-xs">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <button type="submit" className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium hover:bg-blue-700 transition">
                 ស្វែងរក
               </button>
             </div>
           </form>
 
-          {/* Mobile: Hamburger Menu + Search Icon */}
-          <div className="flex items-center gap-2 sm:hidden">
+          {/* Mobile Actions */}
+          <div className="flex items-center gap-1 md:hidden">
             {/* Search Icon for Mobile */}
             <button
-              onClick={() => {
-                const searchInput = document.getElementById('mobile-search')
-                if (searchInput) searchInput.classList.toggle('hidden')
-              }}
-              className="p-2 text-gray-600"
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              className="p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-100 transition"
             >
-              🔍
+              <Search className="w-5 h-5" />
             </button>
+            {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-gray-600"
+              className="p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-gray-100 transition"
             >
-              {mobileMenuOpen ? '✕' : '☰'}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
-          {/* Desktop: Auth Buttons */}
-          <div className="hidden sm:flex items-center gap-2">
+          {/* Desktop Auth Buttons */}
+          <div className="hidden md:flex items-center gap-3">
             {session?.user?.role === 'ADMIN' && (
-              <Link href="/admin" className="text-pink-600 text-sm font-medium">👑 Admin</Link>
+              <Link href="/admin" className="text-blue-600 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-blue-50 transition">
+                👑 Admin
+              </Link>
             )}
             
             {session ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setShowSettings(!showSettings)}
-                  className="flex items-center gap-1 text-gray-600 hover:text-pink-600 text-sm font-medium"
+                  className="flex items-center gap-2 text-gray-700 hover:text-blue-600 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 transition"
                 >
-                  👤 {session.user?.name}
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
+                  <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                    {session.user?.name?.charAt(0) || 'U'}
+                  </div>
+                  <span className="max-w-[100px] truncate">{session.user?.name}</span>
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showSettings ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {showSettings && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border py-1 z-50">
-                    <Link href="/settings" className="block px-3 py-2 text-sm hover:bg-pink-50" onClick={() => setShowSettings(false)}>
-                      ⚙️ ការកំណត់
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 overflow-hidden">
+                    <Link href="/settings" className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 transition" onClick={() => setShowSettings(false)}>
+                      <Settings className="w-4 h-4" />
+                      ការកំណត់
                     </Link>
-                    <button onClick={() => { signOut({ callbackUrl: '/' }); setShowSettings(false) }} className="block w-full text-left 
-px-3 py-2 text-sm text-red-500 hover:bg-red-50">
-                      🚪 Logout
+                    <button onClick={() => { signOut({ callbackUrl: '/' }); setShowSettings(false) }} className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition w-full">
+                      <LogOut className="w-4 h-4" />
+                      ចាកចេញ
                     </button>
                   </div>
                 )}
               </div>
             ) : (
               <>
-                <Link href="/login" className="text-gray-600 text-sm font-medium">🔑 Login</Link>
-                <Link href="/register" className="bg-pink-500 text-white px-3 py-1 rounded-lg text-sm">📝 Register</Link>
+                <Link href="/login" className="flex items-center gap-2 text-gray-600 hover:text-blue-600 text-sm font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 transition">
+                  <LogIn className="w-4 h-4" />
+                  ចូល
+                </Link>
+                <Link href="/register" className="flex items-center gap-2 bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm">
+                  <UserPlus className="w-4 h-4" />
+                  ចុះឈ្មោះ
+                </Link>
               </>
             )}
           </div>
         </div>
 
         {/* Mobile Search Bar */}
-        <div id="mobile-search" className="hidden sm:hidden mt-3">
-          <form onSubmit={handleSearch}>
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="ស្វែងរកផ្កា..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 
-focus:ring-pink-500 text-sm"
-              />
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" 
-stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <button type="submit" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-pink-500 text-white px-3 py-1 
-rounded-full text-xs">
-                ស្វែងរក
-              </button>
-            </div>
-          </form>
-        </div>
+        {mobileSearchOpen && (
+          <div className="md:hidden py-3 border-t border-gray-100">
+            <form onSubmit={handleSearch}>
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="ស្វែងរកផលិតផល..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-20 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-gray-50"
+                  autoFocus
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <button type="submit" className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-medium">
+                  ស្វែងរក
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
-        {/* Desktop Menu - All items in row */}
-        <div className="hidden sm:block mt-4 overflow-x-auto pb-2">
-          <div className="flex flex-wrap gap-3 items-center">
-          {menuItems.map((item) => (
-  <Link
-    key={item.href}
-    href={item.href}
-    className="text-gray-600 hover:text-pink-600 text-sm font-medium whitespace-nowrap relative"
-  >
-    {item.icon} {item.label}
-    {item.badge !== undefined && item.badge > 0 && (
-      <span className={`absolute -top-2 -right-3 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center 
-${item.badgeColor === 'green' ? 'bg-green-500' : 'bg-pink-500'}`}>
-        {item.badge > 99 ? '99+' : item.badge}
-      </span>
-    )}
-  </Link>
-))}
+        {/* Desktop Navigation Menu */}
+        <div className="hidden md:block mt-0 pt-3 pb-2 border-t border-gray-100">
+          <div className="flex flex-wrap gap-1">
+            {menuItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex items-center gap-2 text-gray-600 hover:text-blue-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-50 transition relative"
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className={`absolute -top-1 -right-1 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                    item.badgeColor === 'green' ? 'bg-green-500' : 'bg-pink-500'
+                  }`}>
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+              </Link>
+            ))}
           </div>
         </div>
 
-        {/* Mobile Menu - Hamburger */}
+        {/* Mobile Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="sm:hidden mt-4 pt-4 border-t border-gray-100">
-            <div className="flex flex-col gap-3">
-            {menuItems.map((item) => (
-  <Link
-    key={item.href}
-    href={item.href}
-    className="text-gray-600 hover:text-pink-600 py-2 flex items-center gap-2"
-    onClick={() => setMobileMenuOpen(false)}
-  >
-    <span>{item.icon}</span> {item.label}
-    {item.badge !== undefined && item.badge > 0 && (
-      <span className={`text-white text-xs w-5 h-5 rounded-full flex items-center justify-center ${item.badgeColor === 'green' ? 
-'bg-green-500' : 'bg-pink-500'}`}>
-        {item.badge > 99 ? '99+' : item.badge}
-      </span>
-    )}
-  </Link>
-))}
+          <div className="md:hidden py-4 border-t border-gray-100">
+            <div className="flex flex-col gap-1">
+              {menuItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 text-gray-600 hover:text-blue-600 py-3 px-2 rounded-lg hover:bg-blue-50 transition"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className={`text-white text-xs w-5 h-5 rounded-full flex items-center justify-center ${
+                      item.badgeColor === 'green' ? 'bg-green-500' : 'bg-pink-500'
+                    }`}>
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
               
               {session?.user?.role === 'ADMIN' && (
-                <Link href="/admin" className="text-pink-600 py-2" onClick={() => setMobileMenuOpen(false)}>
-                  👑 Admin
+                <Link href="/admin" className="flex items-center gap-3 text-blue-600 py-3 px-2 rounded-lg hover:bg-blue-50 transition" onClick={() => setMobileMenuOpen(false)}>
+                  <span className="text-xl">👑</span>
+                  Admin
                 </Link>
               )}
               
               {session ? (
                 <>
-                  <Link href="/settings" className="text-gray-600 py-2" onClick={() => setMobileMenuOpen(false)}>
-                    ⚙️ ការកំណត់
+                  <Link href="/settings" className="flex items-center gap-3 text-gray-600 py-3 px-2 rounded-lg hover:bg-blue-50 transition" onClick={() => setMobileMenuOpen(false)}>
+                    <Settings className="w-5 h-5" />
+                    ការកំណត់
                   </Link>
                   <button
                     onClick={() => { signOut({ callbackUrl: '/' }); setMobileMenuOpen(false) }}
-                    className="text-red-500 text-left py-2"
+                    className="flex items-center gap-3 text-red-600 py-3 px-2 rounded-lg hover:bg-red-50 transition w-full"
                   >
-                    🚪 Logout
+                    <LogOut className="w-5 h-5" />
+                    ចាកចេញ
                   </button>
                 </>
               ) : (
-                <>
-                  <Link href="/login" className="text-gray-600 py-2" onClick={() => setMobileMenuOpen(false)}>
-                    🔑 Login
+                <div className="flex flex-col gap-2 pt-2 mt-2 border-t border-gray-100">
+                  <Link href="/login" className="flex items-center justify-center gap-2 text-gray-600 py-2 px-4 rounded-lg border border-gray-200 hover:border-blue-500 hover:text-blue-600 transition" onClick={() => setMobileMenuOpen(false)}>
+                    <LogIn className="w-4 h-4" />
+                    ចូល
                   </Link>
-                  <Link href="/register" className="bg-pink-500 text-white px-4 py-2 rounded-lg text-center" onClick={() => 
-setMobileMenuOpen(false)}>
-                    📝 Register
+                  <Link href="/register" className="flex items-center justify-center gap-2 bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition" onClick={() => setMobileMenuOpen(false)}>
+                    <UserPlus className="w-4 h-4" />
+                    ចុះឈ្មោះ
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
@@ -253,4 +265,3 @@ setMobileMenuOpen(false)}>
     </nav>
   )
 }
-

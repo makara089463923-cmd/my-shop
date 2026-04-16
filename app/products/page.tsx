@@ -98,17 +98,6 @@ function ProductsContent() {
     updateURL('', selectedCategory, 1)
   }
 
-  const categories = [
-    'ទាំងអស់',
-    'ផ្កាកុលាប',
-    'ផ្កាឈូក',
-    'ផ្កាម្លិះ',
-    'អ័រគីដេ',
-    'ឈូករ័ត្ន',
-    'លីលី',
-    'ភួង'
-  ]
-
   const getPageNumbers = () => {
     const pages = []
     const maxVisible = 5
@@ -126,52 +115,30 @@ function ProductsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 md:py-12">
         
-        {/* Header */}
-        <div className="text-center mb-6 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-            🌸 ផ្ការបស់យើង
-          </h1>
-          <p className="text-gray-500 text-xs sm:text-sm max-w-md mx-auto">
-            ជ្រើសរើសផ្កាដ៏ស្រស់ស្អាតសម្រាប់មនុស្សពិសេសរបស់អ្នក
-          </p>
-          
-          {searchTerm && (
-            <div className="mt-3 inline-flex items-center gap-2 bg-pink-100 text-pink-700 px-3 py-1.5 rounded-full text-xs sm:text-sm">
+        {/* Header - REMOVED Petal of Praise and flower text */}
+        {/* លុបចេញទាំងស្រុង */}
+
+        {/* Search Results Info - Only show when searching */}
+        {searchTerm && (
+          <div className="mb-6 text-center">
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-xs sm:text-sm">
               <span>🔍</span>
               <span>លទ្ធផលសម្រាប់: <strong className="font-medium">"{searchTerm}"</strong></span>
               <button
                 onClick={clearSearch}
-                className="ml-1 text-pink-500 hover:text-pink-700 transition"
+                className="ml-1 text-blue-500 hover:text-blue-700 transition"
               >
                 ✕
               </button>
             </div>
-          )}
-        </div>
-
-        {/* Category Filter - Responsive */}
-        <div className="mb-6 sm:mb-8 overflow-x-auto pb-2">
-          <div className="flex gap-2 min-w-max justify-start sm:justify-center">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => handleCategoryChange(cat === 'ទាំងអស់' ? '' : cat)}
-                className={`
-                  px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap
-                  ${(cat === 'ទាំងអស់' && !selectedCategory) || selectedCategory === cat
-                    ? 'bg-pink-500 text-white shadow-md'
-                    : 'bg-white text-gray-600 hover:bg-pink-100 border border-gray-200'
-                  }
-                `}
-              >
-                {cat === 'ទាំងអស់' ? '🌸 ទាំងអស់' : cat}
-              </button>
-            ))}
           </div>
-        </div>
+        )}
+
+        {/* Category Filter - REMOVED all flower categories */}
+        {/* លុបចេញទាំងស្រុង */}
 
         {/* Loading State - Responsive Grid */}
         {loading && (
@@ -201,14 +168,14 @@ function ProductsContent() {
         {!loading && products.length === 0 ? (
           <div className="text-center py-12 sm:py-20">
             <div className="text-5xl sm:text-6xl mb-4">🔍</div>
-            <p className="text-gray-400 text-base sm:text-lg">រកមិនឃើញផ្កាដែលអ្នកស្វែងរកទេ</p>
+            <p className="text-gray-400 text-base sm:text-lg">រកមិនឃើញផលិតផលដែលអ្នកស្វែងរកទេ</p>
             <p className="text-gray-400 text-xs sm:text-sm mt-1">សូមសាកល្បងពាក្យផ្សេង</p>
             {searchTerm && (
               <button
                 onClick={clearSearch}
-                className="mt-4 text-pink-500 hover:text-pink-600 underline text-sm"
+                className="mt-4 text-blue-500 hover:text-blue-600 underline text-sm"
               >
-                មើលផ្កាទាំងអស់
+                មើលផលិតផលទាំងអស់
               </button>
             )}
           </div>
@@ -217,7 +184,7 @@ function ProductsContent() {
             <>
               <div className="mb-4 flex justify-between items-center">
                 <p className="text-xs sm:text-sm text-gray-500">
-                  បង្ហាញ {products.length} ក្នុងចំណោម {pagination.total} ប្រភេទ
+                  បង្ហាញ {products.length} ក្នុងចំណោម {pagination.total} ផលិតផល
                 </p>
               </div>
               
@@ -234,9 +201,7 @@ function ProductsContent() {
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition bg-white border 
-border-gray-200 text-gray-600 
-hover:bg-pink-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition bg-white border border-gray-200 text-gray-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ← មុន
                   </button>
@@ -247,8 +212,8 @@ hover:bg-pink-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={() => handlePageChange(page)}
                       className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-medium transition ${
                         currentPage === page
-                          ? 'bg-pink-500 text-white shadow-md'
-                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-pink-50'
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'bg-white border border-gray-200 text-gray-600 hover:bg-blue-50'
                       }`}
                     >
                       {page}
@@ -258,9 +223,7 @@ hover:bg-pink-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === pagination.totalPages}
-                    className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition bg-white border 
-border-gray-200 text-gray-600 
-hover:bg-pink-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition bg-white border border-gray-200 text-gray-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     បន្ទាប់ →
                   </button>
@@ -278,7 +241,7 @@ export default function ProductsPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
       <ProductsContent />

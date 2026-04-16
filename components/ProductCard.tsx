@@ -33,7 +33,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   async function handleAddToCart() {
     if (product.stock === 0) {
-      setToastMessage('សូមទោស ផ្កានេះអស់ស្តុកហើយ')
+      setToastMessage('សូមទោស ផលិតផលនេះអស់ស្តុកហើយ')
       setToastType('error')
       setShowToast(true)
       return
@@ -78,14 +78,12 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <>
-      <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border 
-border-gray-100 hover:border-pink-200">
-        {/* Image Container */}
+      <div className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-200">
+        {/* Image Container - Smaller height */}
         <div 
-          className="relative aspect-square overflow-hidden bg-gradient-to-br from-pink-50 to-rose-50 cursor-pointer"
+          className="relative aspect-square overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 cursor-pointer"
           onClick={() => router.push(`/products/${product.id}`)}
         >
-          {/* Image - Simple and guaranteed to work */}
           <div className="w-full h-full relative">
             <img 
               src={imgSrc}
@@ -102,97 +100,95 @@ border-gray-100 hover:border-pink-200">
           <button
             onClick={handleWishlist}
             disabled={wishlistLoading}
-            className="absolute top-3 right-3 z-10 w-8 h-8 bg-white rounded-full shadow-md flex items-center justify-center 
-hover:scale-110 transition disabled:opacity-50"
+            className="absolute top-2 right-2 z-10 w-7 h-7 bg-white rounded-full shadow-md flex items-center justify-center hover:scale-110 transition disabled:opacity-50"
           >
             {wishlistLoading ? (
-              <div className="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
             ) : (
-              <span className={isWishlisted ? 'text-red-500 text-lg' : 'text-gray-400 text-lg'}>
+              <span className={isWishlisted ? 'text-red-500 text-sm' : 'text-gray-400 text-sm'}>
                 {isWishlisted ? '❤️' : '🤍'}
               </span>
             )}
           </button>
 
-          {/* Stock Badge */}
+          {/* Stock Badge - Smaller */}
           {product.stock <= 5 && product.stock > 0 && (
-            <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs px-2 py-1 rounded-full shadow-md">
+            <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-md">
               នៅសល់ {product.stock}
             </span>
           )}
           {product.stock === 0 && (
-            <span className="absolute top-3 left-3 bg-gray-500 text-white text-xs px-2 py-1 rounded-full shadow-md">
+            <span className="absolute top-2 left-2 bg-gray-500 text-white text-[10px] px-1.5 py-0.5 rounded-full shadow-md">
               អស់ស្តុក
             </span>
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-4">
+        {/* Content - Compact */}
+        <div className="p-3">
           {product.category && (
-            <span className="inline-block text-xs font-medium text-pink-500 bg-pink-50 px-2 py-1 rounded-full mb-2">
+            <span className="inline-block text-[10px] font-medium text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded-full mb-1.5">
               {product.category}
             </span>
           )}
 
           <h3 
-            className="font-semibold text-gray-800 text-lg mb-1 line-clamp-2 min-h-[56px] cursor-pointer hover:text-pink-600 
-transition"
+            className="font-semibold text-gray-800 text-sm mb-1 line-clamp-2 min-h-[40px] cursor-pointer hover:text-blue-600 transition"
             onClick={() => router.push(`/products/${product.id}`)}
           >
             {product.name}
           </h3>
 
-          <div className="flex items-baseline gap-1 mb-3">
-            <span className="text-2xl font-bold text-pink-600">${product.price.toFixed(2)}</span>
-            <span className="text-xs text-gray-400">USD</span>
+          {/* Price - Compact */}
+          <div className="flex items-baseline gap-1 mb-2">
+            <span className="text-lg font-bold text-blue-600">${product.price.toFixed(2)}</span>
+            <span className="text-[10px] text-gray-400">USD</span>
           </div>
 
-          <div className="flex items-center justify-between mb-3">
+          {/* Stock info - Compact */}
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-400">📦 ស្តុក:</span>
-              <span className={`text-sm font-medium ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-orange-500' : 
-'text-red-500'}`}>
-                {product.stock > 0 ? `${product.stock} ដើម` : 'អស់'}
+              <span className="text-[10px] text-gray-400">📦 ស្តុក:</span>
+              <span className={`text-xs font-medium ${product.stock > 10 ? 'text-green-600' : product.stock > 0 ? 'text-orange-500' : 'text-red-500'}`}>
+                {product.stock > 0 ? `${product.stock}` : 'អស់'}
               </span>
             </div>
           </div>
 
+          {/* Buttons - Compact */}
           <button
             onClick={handleAddToCart}
             disabled={adding || product.stock === 0}
             className={`
-              w-full py-3 rounded-xl transition-all duration-300 font-medium text-sm
+              w-full py-2 rounded-lg transition-all duration-300 font-medium text-xs
               ${product.stock === 0
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+                : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-md hover:scale-[1.01] active:scale-[0.99]'
               }
             `}
           >
             {adding ? (
-              <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <span className="flex items-center justify-center gap-1">
+                <svg className="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 
-014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                កំពុងបន្ថែម...
+                កំពុង...
               </span>
             ) : product.stock === 0 ? (
               'អស់ស្តុក'
             ) : (
-              <span className="flex items-center justify-center gap-2">
-                🛒 បន្ថែមទៅកន្ត្រក
+              <span className="flex items-center justify-center gap-1">
+                🛒 បន្ថែម
               </span>
             )}
           </button>
 
           <button
             onClick={() => router.push(`/products/${product.id}`)}
-            className="w-full mt-2 py-2 rounded-xl text-sm font-medium border border-pink-200 text-pink-600 hover:bg-pink-50 transition 
-flex items-center justify-center gap-1"
+            className="w-full mt-1.5 py-1.5 rounded-lg text-xs font-medium border border-blue-200 text-blue-600 hover:bg-blue-50 transition flex items-center justify-center gap-1"
           >
-            🔍 មើលលម្អិត
+            🔍 លម្អិត
           </button>
         </div>
       </div>
@@ -202,10 +198,9 @@ flex items-center justify-center gap-1"
           message={toastMessage}
           type={toastType}
           onClose={() => setShowToast(false)}
+          duration={2000}
         />
       )}
     </>
   )
 }
-
-
