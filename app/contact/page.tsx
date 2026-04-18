@@ -181,12 +181,12 @@ focus:ring-pink-500 transition disabled:opacity-50 disabled:cursor-not-allowed s
               <div>
                 <div className="text-xl mb-1">📞</div>
                 <p className="text-[11px] text-gray-500">ទូរស័ព្ទ</p>
-                <p className="text-xs font-medium text-gray-700">+855 12 345 678</p>
+                <p className="text-xs font-medium text-gray-700">+855 81 61 55 12</p>
               </div>
               <div>
                 <div className="text-xl mb-1">✉️</div>
                 <p className="text-[11px] text-gray-500">អ៊ីមែល</p>
-                <p className="text-xs font-medium text-gray-700">info@myshop.com</p>
+                <p className="text-xs font-medium text-gray-700">makara089463923@gmail.com</p>
               </div>
               <div>
                 <div className="text-xl mb-1">📍</div>
