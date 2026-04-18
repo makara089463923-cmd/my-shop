@@ -29,7 +29,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "LocalBusiness",
-              "name": "Dr. Daisy",
+              "name": "Petal of Praise",
               "description": "ហាងលក់ផ្កាធ្វើដោយដៃ (Handmade Flowers)",
               "address": {
                 "@type": "PostalAddress",
@@ -38,7 +38,7 @@ export default function RootLayout({
                 "addressCountry": "KH"
               },
               "telephone": "+855 81 61 55 12",
-              "email": "info@drdaisy.uk",
+              "email": "makara089463923@gmail.com",
               "openingHours": "Mo-Su 07:00-19:00",
               "url": "https://drdaisy.uk",
               "image": "https://drdaisy.uk/images/logo.png"
