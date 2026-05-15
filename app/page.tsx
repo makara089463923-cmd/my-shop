@@ -4,7 +4,10 @@ import Image from 'next/image'
 import { ShoppingCart, Heart, Star, Truck, ShieldCheck, Clock, RefreshCw } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { useState } from 'react'
-import Toast from '@/components/ui/Toast'
+import dynamic from 'next/dynamic'
+
+// Dynamically import Toast to avoid SSR
+const Toast = dynamic(() => import('@/components/ui/Toast'), { ssr: false })
 
 const featuredProducts = [
   {
@@ -111,19 +114,21 @@ export default function HomePage() {
       setToastMessage(`✓ បានបន្ថែម ${productName} ទៅកន្ត្រកហើយ!`)
       setToastType('success')
       setShowToast(true)
+      setTimeout(() => setShowToast(false), 3000)
     } catch (error) {
       setToastMessage('មានបញ្ហា សូមសាកម្តងទៀត')
       setToastType('error')
       setShowToast(true)
+      setTimeout(() => setShowToast(false), 3000)
     } finally {
       setAddingId(null)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white" suppressHydrationWarning>
       
-      {/* Toast Notification */}
+      {/* Toast Notification - Dynamically imported (no SSR) */}
       {showToast && (
         <Toast
           message={toastMessage}
@@ -191,7 +196,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Featured Products - Same grid as Products page */}
+      {/* Featured Products */}
       <div className="py-8 sm:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center mb-6 sm:mb-12">
@@ -205,46 +210,35 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Same grid as Products page: 2 columns on mobile, 5 on desktop */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {featuredProducts.map((product) => (
               <div key={product.id} className="group relative bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300">
-                {/* Discount Badge */}
                 {product.discount && (
                   <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 bg-red-500 text-white text-[8px] sm:text-[10px] font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 rounded-full">
                     -{product.discount}%
                   </div>
                 )}
-                
-                {/* Tag Badge */}
                 {product.tag && (
                   <div className="absolute top-1 right-1 sm:top-2 sm:right-2 z-10 bg-orange-500 text-white text-[8px] sm:text-[10px] font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 rounded-full">
                     {product.tag}
                   </div>
                 )}
-                
-                {/* Wishlist Button */}
                 <button className="absolute bottom-2 right-2 z-10 bg-white/80 backdrop-blur-sm p-1 sm:p-1.5 rounded-full hover:bg-red-500 hover:text-white transition-all">
                   <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </button>
-
-                {/* Product Image - Same aspect-square as Products page */}
                 <div className="relative aspect-square overflow-hidden bg-gray-100">
                   <Image
                     src={product.image}
                     alt={product.name}
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                   />
                 </div>
-
-                {/* Product Info */}
                 <div className="p-1.5 sm:p-2">
                   <h3 className="font-semibold text-gray-800 mb-0.5 sm:mb-1 group-hover:text-blue-600 transition line-clamp-1 text-[10px] sm:text-xs">
                     {product.name}
                   </h3>
-                  
-                  {/* Rating */}
                   <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
@@ -260,8 +254,6 @@ export default function HomePage() {
                     </div>
                     <span className="text-[6px] sm:text-[8px] text-gray-500">({product.reviews})</span>
                   </div>
-
-                  {/* Price */}
                   <div className="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-2">
                     <span className="text-[10px] sm:text-sm font-bold text-blue-600">
                       ${product.price}
@@ -272,8 +264,6 @@ export default function HomePage() {
                       </span>
                     )}
                   </div>
-
-                  {/* Add to Cart Button */}
                   <button 
                     onClick={() => handleAddToCart(product.id, product.name)}
                     disabled={addingId === product.id}
@@ -294,25 +284,6 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Newsletter Section */}
-      <div className="py-10 sm:py-16 bg-blue-600">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3">📧 ទទួលបានព័ត៌មានថ្មីៗ</h2>
-          <p className="text-blue-100 text-xs sm:text-sm md:text-base mb-4 sm:mb-6 px-2">ចុះឈ្មោះទទួលបានកូដបញ្ចុះតម្លៃ 15% សម្រាប់ការទិញលើកដំបូង</p>
-          
-          <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-2 sm:gap-3 px-4 sm:px-0">
-            <input
-              type="email"
-              placeholder="អាសយដ្ឋានអ៊ីមែល"
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-full border-0 focus:ring-2 focus:ring-white focus:outline-none text-sm sm:text-base"
-            />
-            <button className="bg-white text-blue-600 px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold hover:bg-gray-100 transition text-sm sm:text-base">
-              ចុះឈ្មោះ
-            </button>
           </div>
         </div>
       </div>
