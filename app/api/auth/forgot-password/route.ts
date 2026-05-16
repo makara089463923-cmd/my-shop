@@ -34,7 +34,9 @@ export async function POST(req: Request) {
       },
     })
 
-    const resetLink = `${process.env.NEXTAUTH_URL}/reset-password/${resetToken}`
+    // Use base URL without www
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://drdaisy.uk'
+    const resetLink = `${baseUrl}/reset-password/${resetToken}`
     
     const { error } = await resend.emails.send({
       from: 'hello@drdaisy.uk',
@@ -61,9 +63,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'មានបញ្ហាក្នុងការផ្ញើអ៊ីមែល' }, { status: 500 })
     }
 
-    console.log('Reset link sent to:', email)
-    console.log('Reset link:', resetLink)
-    
     return NextResponse.json({
       message: 'តំណភ្ជាប់កំណត់ពាក្យសម្ងាត់ថ្មីត្រូវបានផ្ញើទៅកាន់អ៊ីមែលរបស់អ្នក',
     })
