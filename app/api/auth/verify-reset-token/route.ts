@@ -9,16 +9,21 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Token required' }, { status: 400 })
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      resetToken: token,
-      resetTokenExpiry: { gt: new Date() },
-    },
-  })
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: { gt: new Date() },
+      },
+    })
 
-  if (!user) {
-    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
+    }
+
+    return NextResponse.json({ valid: true })
+  } catch (error) {
+    console.error('Verify token error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-
-  return NextResponse.json({ valid: true })
 }

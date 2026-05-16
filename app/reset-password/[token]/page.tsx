@@ -15,10 +15,8 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        console.log('Verifying token:', params.token)
         const res = await fetch(`/api/auth/verify-reset-token?token=${params.token}`)
         const data = await res.json()
-        console.log('Verify response:', data)
         
         if (data.valid === true) {
           setValid(true)
@@ -26,7 +24,6 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
           setValid(false)
         }
       } catch (error) {
-        console.error('Verification error:', error)
         setValid(false)
       }
     }
