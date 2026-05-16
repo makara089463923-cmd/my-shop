@@ -10,20 +10,29 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const [valid, setValid] = useState(true)
+  const [valid, setValid] = useState<boolean | null>(null)
 
   useEffect(() => {
     const verifyToken = async () => {
       try {
+        console.log('Verifying token:', params.token)
         const res = await fetch(`/api/auth/verify-reset-token?token=${params.token}`)
-        if (!res.ok) {
+        const data = await res.json()
+        console.log('Verify response:', data)
+        
+        if (data.valid === true) {
+          setValid(true)
+        } else {
           setValid(false)
         }
       } catch (error) {
+        console.error('Verification error:', error)
         setValid(false)
       }
     }
-    verifyToken()
+    if (params.token) {
+      verifyToken()
+    }
   }, [params.token])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,6 +74,17 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
     } finally {
       setLoading(false)
     }
+  }
+
+  if (valid === null) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-500 text-sm">កំពុងផ្ទៀងផ្ទាត់...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!valid) {
