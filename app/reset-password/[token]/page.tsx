@@ -1,10 +1,19 @@
 'use client'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react' // ថែម React សម្រាប់ប្រើ React.use()
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-export default function ResetPasswordPage({ params }: { params: { token: string } }) {
+interface PageProps {
+  params: Promise<{ token: string }> | { token: string }
+}
+
+export default function ResetPasswordPage({ params }: PageProps) {
   const router = useRouter()
+  
+  // ប្រើ React.use() ដើម្បីស្រាយ Promise ពី params (ដោះស្រាយបញ្ហាគាំងត្រឹមកំពុងផ្ទៀងផ្ទាត់)
+  const resolvedParams = 'then' in params ? React.use(params) : params
+  const token = resolvedParams?.token
+
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -14,17 +23,24 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
 
   useEffect(() => {
     const verifyToken = async () => {
+      if (!token) {
+        console.log('No token found in URL')
+        setValid(false)
+        return
+      }
+
       try {
-        console.log('Verifying token:', params.token)
-        const res = await fetch(`/api/auth/verify-reset-token?token=${params.token}`)
+        console.log('Verifying token:', token)
+        const res = await fetch(`/api/auth/verify-reset-token?token=${token}`)
         const data = await res.json()
         console.log('Verify response:', data)
         
-        if (data.valid === true) {
+        // ពិនិត្យ Response: បើ status ok និង valid ស្មើ true ទើបឱ្យឆ្លង
+        if (res.ok && data.valid === true) {
           console.log('Token is valid, setting valid=true')
           setValid(true)
         } else {
-          console.log('Token is invalid')
+          console.log('Token is invalid or expired')
           setValid(false)
         }
       } catch (error) {
@@ -32,12 +48,9 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
         setValid(false)
       }
     }
-    if (params.token) {
-      verifyToken()
-    }
-  }, [params.token])
 
-  console.log('Current valid state:', valid)
+    verifyToken()
+  }, [token])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,7 +73,7 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: params.token, password }),
+        body: JSON.stringify({ token: token, password }),
       })
 
       const data = await res.json()
@@ -149,7 +162,7 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
               <input
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)} // កែសម្រួលឱ្យត្រូវ state confirmPassword
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 placeholder="បញ្ចូលពាក្យសម្ងាត់ម្តងទៀត"
