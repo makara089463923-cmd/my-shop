@@ -15,15 +15,20 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
   useEffect(() => {
     const verifyToken = async () => {
       try {
+        console.log('Verifying token:', params.token)
         const res = await fetch(`/api/auth/verify-reset-token?token=${params.token}`)
         const data = await res.json()
+        console.log('Verify response:', data)
         
         if (data.valid === true) {
+          console.log('Token is valid, setting valid=true')
           setValid(true)
         } else {
+          console.log('Token is invalid')
           setValid(false)
         }
       } catch (error) {
+        console.error('Verification error:', error)
         setValid(false)
       }
     }
@@ -31,6 +36,8 @@ export default function ResetPasswordPage({ params }: { params: { token: string 
       verifyToken()
     }
   }, [params.token])
+
+  console.log('Current valid state:', valid)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
