@@ -1,62 +1,15 @@
-// // /** @type {import('next').NextConfig} */
-// // const nextConfig = {
-// //   // Disable preload for CSS to avoid warnings
-// //   experimental: {
-// //     optimizeCss: false,
-// //   },
-// //   // Or configure images if needed
-// //   images: {
-// //     domains: ['localhost'],
-// //     remotePatterns: [
-// //       {
-// //         protocol: 'https',
-// //         hostname: '**',
-// //       },
-// //     ],
-// //   },
-// // }
-
-// // module.exports = nextConfig
-
-
-
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   // Disable preload for CSS to avoid warnings
-//   experimental: {
-//     optimizeCss: false,
-//   },
-//   // Configure images with remotePatterns
-//   images: {
-//     remotePatterns: [
-//       {
-//         protocol: 'http',
-//         hostname: 'localhost',
-//       },
-//       {
-//         protocol: 'https',
-//         hostname: '**',
-//       },
-//     ],
-//   },
-// }
-
-// module.exports = nextConfig
-
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Cloudflare Pages - Static Export
-  output: 'export', // ✅ សំខាន់បំផុតសម្រាប់ Cloudflare Pages
+  // ❌ លុប output: 'export' ចេញ - មិនអាចប្រើជាមួយ API routes បានទេ
+  // output: 'export',
   
   // Disable preload for CSS to avoid warnings
   experimental: {
     optimizeCss: false,
   },
   
-  // Configure images
+  // Configure images with remotePatterns
   images: {
-    unoptimized: true, // ✅ ត្រូវការសម្រាប់ static export
     remotePatterns: [
       {
         protocol: 'http',
