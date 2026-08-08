@@ -1,12 +1,14 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 export default function AdminLayoutClient({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false) // ដើម្បីតាមដានការបង្កើតដំបូង
   const pathname = usePathname()
+  const isMobileRef = useRef(false) // useRef ដើម្បីរក្សាទុក isMobile សម្រាប់ប្រើក្នុង useEffect
   
   const adminMenuItems = [
     { href: '/admin', icon: '📊', label: 'Dashboard' },
@@ -18,49 +20,58 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
 
   const isActive = (href: string) => pathname === href
 
-  // Check if mobile on client side only
+  // ត្រួតពិនិត្យ mobile និងកំណត់ sidebar state
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
-      if (window.innerWidth < 1024) {
+      const mobile = window.innerWidth < 1024
+      setIsMobile(mobile)
+      isMobileRef.current = mobile
+      
+      // កំណត់ sidebar open/close តាម mobile
+      if (mobile) {
         setSidebarOpen(false)
       } else {
-        setSidebarOpen(true)
+        // ប្រសិនបើមិនមែន mobile អានពី localStorage
+        const savedState = localStorage.getItem('adminSidebarOpen')
+        if (savedState !== null) {
+          setSidebarOpen(savedState === 'true')
+        } else {
+          setSidebarOpen(true) // default
+        }
       }
+      setIsInitialized(true)
     }
     
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+  }, []) // Empty dependency array - ដំណើរការតែម្តង
 
   // Close sidebar when pressing ESC key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSidebarOpen(false)
+      if (e.key === 'Escape' && isMobileRef.current) {
+        setSidebarOpen(false)
+      }
     }
     window.addEventListener('keydown', handleEsc)
     return () => window.removeEventListener('keydown', handleEsc)
   }, [])
 
-  // Save sidebar state to localStorage
+  // Save sidebar state to localStorage (តែពេលមិនមែន mobile និងបាន initialized រួច)
   useEffect(() => {
-    if (!isMobile) {
-      const savedState = localStorage.getItem('adminSidebarOpen')
-      if (savedState !== null) {
-        setSidebarOpen(savedState === 'true')
-      }
-    }
-  }, [isMobile])
-
-  useEffect(() => {
-    if (!isMobile) {
+    if (isInitialized && !isMobile) {
       localStorage.setItem('adminSidebarOpen', String(sidebarOpen))
     }
-  }, [sidebarOpen, isMobile])
+  }, [sidebarOpen, isMobile, isInitialized])
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen)
+  const toggleSidebar = useCallback(() => {
+    setSidebarOpen(prev => !prev)
+  }, [])
+
+  // ត្រួតពិនិត្យថា window មាន (សម្រាប់ SSR)
+  if (typeof window === 'undefined') {
+    return null
   }
 
   return (
@@ -70,7 +81,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         <div className="flex items-center justify-between px-4 py-3">
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200"
+            className="p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors"
             aria-label="Open menu"
           >
             <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +115,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
               )}
               <button 
                 onClick={toggleSidebar}
-                className="text-white hover:text-gray-300 text-xl focus:outline-none"
+                className="text-white hover:text-gray-300 text-xl focus:outline-none hover:scale-110 transition-transform"
                 aria-label="Toggle sidebar"
               >
                 {sidebarOpen ? '◀' : '▶'}
@@ -121,10 +132,12 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                   key={item.href}
                   href={item.href}
                   onClick={() => {
-                    if (window.innerWidth < 1024) setSidebarOpen(false)
+                    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                      setSidebarOpen(false)
+                    }
                   }}
                   className={`
-                    px-3 py-2.5 rounded-lg transition flex items-center gap-3 text-sm
+                    px-3 py-2.5 rounded-lg transition-all flex items-center gap-3 text-sm
                     ${isActive(item.href) 
                       ? 'bg-pink-500 text-white shadow-md' 
                       : 'hover:bg-gray-800 text-gray-300 hover:text-white'
@@ -153,7 +166,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                   </div>
                   <Link
                     href="/api/auth/signout"
-                    className="px-3 py-2 rounded-lg hover:bg-gray-800 transition text-red-400 hover:text-red-300 flex items-center gap-3 text-sm"
+                    className="px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-red-400 hover:text-red-300 flex items-center gap-3 text-sm"
                   >
                     <span className="text-xl">🚪</span>
                     <span className="font-medium">Logout</span>
@@ -168,7 +181,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
                   </div>
                   <Link
                     href="/api/auth/signout"
-                    className="flex justify-center px-2 py-2 rounded-lg hover:bg-gray-800 transition text-red-400 hover:text-red-300"
+                    className="flex justify-center px-2 py-2 rounded-lg hover:bg-gray-800 transition-colors text-red-400 hover:text-red-300"
                     title="Logout"
                   >
                     <span className="text-xl">🚪</span>
@@ -180,7 +193,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
         </aside>
 
         {/* Overlay for mobile */}
-        {typeof window !== 'undefined' && sidebarOpen && window.innerWidth < 1024 && (
+        {sidebarOpen && isMobile && (
           <div 
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
@@ -197,7 +210,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
           <div className="hidden lg:block sticky top-4 left-4 z-20">
             <button
               onClick={toggleSidebar}
-              className="bg-white shadow-md rounded-lg p-2 hover:bg-gray-100 transition border border-gray-200"
+              className="bg-white shadow-md rounded-lg p-2 hover:bg-gray-100 transition-colors border border-gray-200 hover:shadow-lg"
               aria-label="Toggle sidebar"
             >
               <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
