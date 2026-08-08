@@ -82,19 +82,23 @@
 
 
 
+// 
+
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
-import Google from 'next-auth/providers/google' // ១. Import Google Provider ចូលមក
+import Google from 'next-auth/providers/google'
 import { PrismaAdapter } from '@auth/prisma-adapter'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma) as any, // ២. បន្ថែម Adapter ទីនេះដើម្បីឱ្យវា save user ចូល Database ស្វ័យប្រវត្តិពេល Login តាម Google
+  // Comment adapter នេះសិនដើម្បីតេស្តមើលថា Error បាត់អត់
+  // adapter: PrismaAdapter(prisma) as any,
+  
   providers: [
-    Google({ // ៣. កំណត់ Google Provider
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET,
     }),
     Credentials({
       name: 'credentials',
@@ -109,7 +113,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: { email: credentials.email as string },
         })
 
-        if (!user || !user.password) return null // ការពារกรณี User ចុះឈ្មោះតាម Google គ្មាន Password
+        if (!user || !user.password) return null
 
         const isValid = await bcrypt.compare(
           credentials.password as string,
@@ -135,10 +139,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
-        token.role = (user as any).role || 'USER' // កំណត់ role default ពេល login តាម google //
+        token.role = (user as any).role || 'USER'
         token.name = user.name
         token.email = user.email
       }
@@ -154,7 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   trustHost: true,
   debug: true,
 })
