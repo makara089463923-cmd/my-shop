@@ -1,4 +1,4 @@
-​'use client'
+'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -34,7 +34,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // ✅ ផ្លាស់ fetchAnalytics មកខាងលើ useEffect
+  // ✅ fetchAnalytics ផ្លាស់មកខាងលើ useEffect
   const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true)
@@ -55,7 +55,6 @@ export default function AnalyticsPage() {
     }
   }, [])
 
-  // ✅ បន្ថែម router និង fetchAnalytics ទៅ dependencies
   useEffect(() => {
     if (status === 'loading') return
     
@@ -64,14 +63,13 @@ export default function AnalyticsPage() {
       return
     }
     
-    // ពិនិត្យ role
     if (session.user?.role !== 'ADMIN' && session.user?.role !== 'admin') {
       router.push('/')
       return
     }
     
     fetchAnalytics()
-  }, [session, status, router, fetchAnalytics]) // ✅ បន្ថែម dependencies
+  }, [session, status, router, fetchAnalytics])
 
   const getStatusColor = useCallback((status: string): string => {
     const colors: Record<StatusColor, string> = {
@@ -93,7 +91,6 @@ export default function AnalyticsPage() {
     return texts[status as StatusColor] || status
   }, [])
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -105,7 +102,6 @@ export default function AnalyticsPage() {
     )
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -126,7 +122,6 @@ export default function AnalyticsPage() {
 
   if (!data) return null
 
-  // Calculate max revenue for chart
   const maxRevenue = data.monthlyRevenue.length > 0 
     ? Math.max(...data.monthlyRevenue.map(m => m.revenue), 1)
     : 1
@@ -135,15 +130,11 @@ export default function AnalyticsPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-pink-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            📊 Analytics Dashboard
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">📊 Analytics Dashboard</h1>
           <p className="text-gray-500">ស្ថិតិលក់ និងដំណើរការអាជីវកម្ម</p>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all">
             <div className="flex items-center justify-between mb-2">
@@ -186,7 +177,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Monthly Revenue Chart */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8 hover:shadow-md transition-all">
           <h2 className="text-lg font-bold text-gray-800 mb-4">📈 ចំណូលប្រចាំខែ</h2>
           {data.monthlyRevenue.length > 0 ? (
@@ -217,7 +207,6 @@ export default function AnalyticsPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Orders */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all">
             <h2 className="text-lg font-bold text-gray-800 mb-4">📋 ការបញ្ជាទិញថ្មីៗ</h2>
             <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
@@ -245,7 +234,6 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Top Products */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-all">
             <h2 className="text-lg font-bold text-gray-800 mb-4">🏆 ផលិតផលលក់ដាច់ជាងគេ</h2>
             <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
@@ -273,7 +261,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Refresh Button */}
         <div className="mt-8 text-center">
           <button
             onClick={() => fetchAnalytics()}
