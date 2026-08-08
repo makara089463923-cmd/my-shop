@@ -1,0 +1,26 @@
+name = "my-shop"
+pages_build_output_dir = ".vercel/output/static"
+compatibility_date = "2024-01-01"
+
+[compatibility_flags]
+nodejs_compat = true
+
+[vars]
+# Database
+DATABASE_URL = "your-postgresql-database-url"
+
+# NextAuth
+NEXTAUTH_SECRET = "your-nextauth-secret-key"
+NEXTAUTH_URL = "https://my-shop.pages.dev"
+
+# App URL
+NEXT_PUBLIC_APP_URL = "https://my-shop.pages.dev"
+
+# Email (Resend)
+RESEND_API_KEY = "your-resend-api-key"
+
+# AWS S3 (ប្រសិនបើមាន)
+# AWS_ACCESS_KEY_ID = "your-aws-access-key"
+# AWS_SECRET_ACCESS_KEY = "your-aws-secret-key"
+# AWS_REGION = "your-aws-region"
+# AWS_BUCKET_NAME = "your-bucket-name"
