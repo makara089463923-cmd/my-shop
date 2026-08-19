@@ -12,6 +12,7 @@ export default function AdminLayoutClient({ children }: { children: React.ReactN
   
   const adminMenuItems = [
     { href: '/admin', icon: '📊', label: 'Dashboard' },
+    { href: '/admin/home', icon: '🏠', label: 'Home Page' },
     { href: '/admin/products', icon: '📦', label: 'Products' },
     { href: '/admin/orders', icon: '🛒', label: 'Orders' },
     { href: '/admin/users', icon: '👥', label: 'Users' },

@@ -3,114 +3,74 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ShoppingCart, Heart, Star, Truck, ShieldCheck, Clock, RefreshCw } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import Toast to avoid SSR
 const Toast = dynamic(() => import('@/components/ui/Toast'), { ssr: false })
 
-const featuredProducts = [
-  {
-    id: 1,
-    name: 'Multi Pocket School Backpack',
-    price: 49.59,
-    originalPrice: 59.99,
-    image: '/images/logo.png',
-    rating: 4.8,
-    reviews: 128,
-    discount: 20,
-    tag: 'Hot',
-  },
-  {
-    id: 2,
-    name: 'Baseball Cap',
-    price: 9.95,
-    originalPrice: 14.99,
-    image: '/images/logo.png',
-    rating: 4.7,
-    reviews: 95,
-    discount: 30,
-    tag: 'Sale',
-  },
-  {
-    id: 3,
-    name: 'Regular Fit T-Shirt With Printed',
-    price: 7.59,
-    originalPrice: 12.99,
-    image: '/images/logo.png',
-    rating: 4.6,
-    reviews: 76,
-    discount: 30,
-    tag: 'Best Seller',
-  },
-  {
-    id: 4,
-    name: 'Hoodie Sweatshirt',
-    price: 29.99,
-    originalPrice: 49.99,
-    image: '/images/logo.png',
-    rating: 4.9,
-    reviews: 42,
-    discount: 40,
-    tag: 'Limited',
-  },
-  {
-    id: 5,
-    name: 'Sports Shoes',
-    price: 39.99,
-    originalPrice: 69.99,
-    image: '/images/logo.png',
-    rating: 4.8,
-    reviews: 203,
-    discount: 43,
-    tag: 'Flash Sale',
-  },
-  {
-    id: 6,
-    name: 'Denim Jeans',
-    price: 24.99,
-    originalPrice: 39.99,
-    image: '/images/logo.png',
-    rating: 4.7,
-    reviews: 156,
-    discount: 38,
-    tag: 'Trending',
-  },
-  {
-    id: 7,
-    name: 'Summer Dress',
-    price: 34.99,
-    originalPrice: 49.99,
-    image: '/images/logo.png',
-    rating: 4.8,
-    reviews: 89,
-    discount: 30,
-    tag: 'New',
-  },
-  {
-    id: 8,
-    name: 'Sunglasses',
-    price: 19.99,
-    originalPrice: 29.99,
-    image: '/images/logo.png',
-    rating: 4.6,
-    reviews: 67,
-    discount: 33,
-    tag: 'Trending',
-  },
-]
-
 export default function HomePage() {
   const { addToCart } = useCart()
-  const [addingId, setAddingId] = useState<number | null>(null)
+  const [addingId, setAddingId] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error'>('success')
+  const [homeData, setHomeData] = useState({
+    heroTitle: 'ស្វាគមន៍មកកាន់ Petal of Praise',
+    heroSubtitle: 'ហាងលក់ផ្កា',
+    heroImage: '',
+    sectionTitle: '✨ ផលិតផលពេញនិយម',
+    sectionSubtitle: 'ផលិតផលដែលអតិថិជនចូលចិត្តបំផុត',
+    aboutTitle: 'អំពីយើង',
+    aboutContent: '',
+    contactEmail: 'contact@drdaisy.uk',
+    contactPhone: '+855 12 345 678',
+  })
+  const [products, setProducts] = useState<any[]>([])
 
-  const handleAddToCart = async (productId: number, productName: string) => {
+  useEffect(() => {
+    const fetchHomeData = async () => {
+      try {
+        const res = await fetch('/api/home')
+        if (res.ok) {
+          const data = await res.json()
+          setHomeData({
+            heroTitle: data.heroTitle || homeData.heroTitle,
+            heroSubtitle: data.heroSubtitle || homeData.heroSubtitle,
+            heroImage: data.heroImage || homeData.heroImage,
+            sectionTitle: data.sectionTitle || homeData.sectionTitle,
+            sectionSubtitle: data.sectionSubtitle || homeData.sectionSubtitle,
+            aboutTitle: data.aboutTitle || homeData.aboutTitle,
+            aboutContent: data.aboutContent || homeData.aboutContent,
+            contactEmail: data.contactEmail || homeData.contactEmail,
+            contactPhone: data.contactPhone || homeData.contactPhone,
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching home data:', error)
+      }
+    }
+
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch('/api/products?limit=8')
+        if (res.ok) {
+          const data = await res.json()
+          setProducts(data.products || [])
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      }
+    }
+
+    fetchHomeData()
+    fetchProducts()
+  }, [])
+
+  const handleAddToCart = async (productId: string, productName: string) => {
     setAddingId(productId)
     try {
-      await addToCart(productId.toString())
+      await addToCart(productId)
       setToastMessage(`✓ បានបន្ថែម ${productName} ទៅកន្ត្រកហើយ!`)
       setToastType('success')
       setShowToast(true)
@@ -140,14 +100,27 @@ export default function HomePage() {
 
       {/* Hero Banner */}
       <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 overflow-hidden">
+        {homeData.heroImage && (
+          <div className="absolute inset-0">
+            <Image
+              src={homeData.heroImage}
+              alt="Hero"
+              fill
+              className="object-cover"
+              priority
+              sizes="100vw"
+            />
+            <div className="absolute inset-0 bg-black/40"></div>
+          </div>
+        )}
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative max-w-7xl mx-auto px-4 py-12 sm:py-16 md:py-24">
           <div className="text-center text-white">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-2 sm:mb-4">
-              ស្វាគមន៍មកកាន់ Petal of Praise
+              {homeData.heroTitle}
             </h1>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl mb-4 sm:mb-8 text-blue-100 max-w-2xl mx-auto px-2">
-              ហាងលក់ផ្កា
+              {homeData.heroSubtitle}
             </p>
             <Link 
               href="/products" 
@@ -201,8 +174,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center mb-6 sm:mb-12">
             <div>
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">✨ ផលិតផលពេញនិយម</h2>
-              <p className="text-gray-500 text-xs sm:text-sm md:text-base">ផលិតផលដែលអតិថិជនចូលចិត្តបំផុត</p>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">{homeData.sectionTitle}</h2>
+              <p className="text-gray-500 text-xs sm:text-sm md:text-base">{homeData.sectionSubtitle}</p>
             </div>
             <Link href="/products" className="text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 text-xs sm:text-sm md:text-base">
               មើលទាំងអស់
@@ -211,62 +184,43 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {featuredProducts.map((product) => (
+            {products.map((product) => (
               <div key={product.id} className="group relative bg-white rounded-lg sm:rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300">
-                {product.discount && (
-                  <div className="absolute top-1 left-1 sm:top-2 sm:left-2 z-10 bg-red-500 text-white text-[8px] sm:text-[10px] font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 rounded-full">
-                    -{product.discount}%
-                  </div>
-                )}
-                {product.tag && (
+                {product.category && (
                   <div className="absolute top-1 right-1 sm:top-2 sm:right-2 z-10 bg-orange-500 text-white text-[8px] sm:text-[10px] font-bold px-1 py-0.5 sm:px-1.5 sm:py-0.5 rounded-full">
-                    {product.tag}
+                    {product.category}
                   </div>
                 )}
                 <button className="absolute bottom-2 right-2 z-10 bg-white/80 backdrop-blur-sm p-1 sm:p-1.5 rounded-full hover:bg-red-500 hover:text-white transition-all">
                   <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 </button>
                 <div className="relative aspect-square overflow-hidden bg-gray-100">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
-                  />
+                  {product.image ? (
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-pink-100 to-rose-100">
+                      🌸
+                    </div>
+                  )}
                 </div>
                 <div className="p-1.5 sm:p-2">
                   <h3 className="font-semibold text-gray-800 mb-0.5 sm:mb-1 group-hover:text-blue-600 transition line-clamp-1 text-[10px] sm:text-xs">
                     {product.name}
                   </h3>
-                  <div className="flex items-center gap-0.5 sm:gap-1 mb-0.5 sm:mb-1">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-1.5 h-1.5 sm:w-2 sm:h-2 ${
-                            i < Math.floor(product.rating)
-                              ? 'text-yellow-400 fill-yellow-400'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-[6px] sm:text-[8px] text-gray-500">({product.reviews})</span>
-                  </div>
                   <div className="flex items-center gap-0.5 sm:gap-1 mb-1 sm:mb-2">
                     <span className="text-[10px] sm:text-sm font-bold text-blue-600">
                       ${product.price}
                     </span>
-                    {product.originalPrice && (
-                      <span className="text-[6px] sm:text-[8px] text-gray-400 line-through">
-                        ${product.originalPrice}
-                      </span>
-                    )}
                   </div>
                   <button 
                     onClick={() => handleAddToCart(product.id, product.name)}
-                    disabled={addingId === product.id}
+                    disabled={addingId === product.id || product.stock === 0}
                     className="w-full bg-gray-100 text-gray-800 py-1 sm:py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300 flex items-center justify-center gap-0.5 sm:gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {addingId === product.id ? (
@@ -278,7 +232,7 @@ export default function HomePage() {
                       <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                     )}
                     <span className="text-[8px] sm:text-[10px] font-medium">
-                      {addingId === product.id ? 'កំពុងបន្ថែម...' : 'បន្ថែម'}
+                      {addingId === product.id ? 'កំពុងបន្ថែម...' : product.stock === 0 ? 'អស់ស្តុក' : 'បន្ថែម'}
                     </span>
                   </button>
                 </div>

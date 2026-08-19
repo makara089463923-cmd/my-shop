@@ -141,3 +141,17 @@ model Contact {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+model HomePage {
+  id          String   @id @default(cuid())
+  heroTitle   String   @default("Welcome to Dr Daisy")
+  heroSubtitle String  @default("Your trusted health and beauty store")
+  heroImage   String?
+  sectionTitle String  @default("Featured Products")
+  sectionSubtitle String @default("Our best selling products")
+  aboutTitle  String   @default("About Us")
+  aboutContent String  @default("We provide quality products for your health and beauty needs")
+  contactEmail String  @default("contact@drdaisy.uk")
+  contactPhone String  @default("+855 12 345 678")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
