@@ -91,6 +91,25 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: 'Missing id' }, { status: 400 })
   }
 
-  await prisma.product.delete({ where: { id } })
-  return NextResponse.json({ message: 'Deleted' })
+  try {
+    // លុបទំនាក់ទំនងទាំងអស់មុន
+    await prisma.wishlist.deleteMany({ where: { productId: id } })
+    await prisma.review.deleteMany({ where: { productId: id } })
+    
+    // លុប variants និងទំនាក់ទំនងរបស់វា
+    const variants = await prisma.productVariant.findMany({ where: { productId: id } })
+    for (const variant of variants) {
+      await prisma.cartItem.deleteMany({ where: { variantId: variant.id } })
+      await prisma.orderItem.deleteMany({ where: { variantId: variant.id } })
+    }
+    await prisma.productVariant.deleteMany({ where: { productId: id } })
+
+    // បន្ទាប់មកលុប product
+    await prisma.product.delete({ where: { id } })
+    
+    return NextResponse.json({ message: 'Deleted' })
+  } catch (error) {
+    console.error('Error deleting product:', error)
+    return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
+  }
 }
