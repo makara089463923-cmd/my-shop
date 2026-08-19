@@ -29,7 +29,7 @@ export async function GET() {
     // 4. ចំណូលសរុប
     const totalRevenue = await prisma.order.aggregate({
       _sum: { total: true },
-      where: { status: { in: ['completed', 'processing'] } },
+      where: { status: { in: ['DELIVERED', 'PROCESSING'] } },
     })
 
     // 5. ចំណូលប្រចាំខែ (7 ខែកន្លងមក)
@@ -43,7 +43,7 @@ export async function GET() {
         _sum: { total: true },
         where: {
           createdAt: { gte: date, lt: nextDate },
-          status: { in: ['completed', 'processing'] },
+          status: { in: ['DELIVERED', 'PROCESSING'] },
         },
       })
       

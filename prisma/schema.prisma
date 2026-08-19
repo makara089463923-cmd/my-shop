@@ -98,7 +98,7 @@ model Order {
   status         String   @default("pending")
   paymentMethod  String   @default("cod")  // cod, aba, wing, etc.
   paymentProof   String?  // URL of payment screenshot
-  paymentStatus  String   @default("unpaid") // unpaid, paid, verified
+  paymentStatus  String   @default("UNPAID") // unpaid, paid, verified
   trackingNumber String?
   courier        String?
   estimatedDate  DateTime?

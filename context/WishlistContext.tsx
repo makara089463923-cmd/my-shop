@@ -57,12 +57,22 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    console.log('📦 Product ID being sent:', productId)
+    console.log('📦 Type of Product ID:', typeof productId)
+
     try {
       const res = await fetch('/api/wishlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId }),
       })
+
+      console.log('📦 Response status:', res.status)
+      
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error('📦 Error response:', errorData)
+      }
 
       if (res.ok) {
         await fetchWishlist()

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import { sendOrderConfirmation } from '@/lib/email'  // បន្ថែមនេះ
+import { sendOrderConfirmation } from '@/lib/email'
 
 export async function POST() {
   const session = await auth()
@@ -17,73 +17,72 @@ export async function POST() {
     return NextResponse.json({ error: 'User not found' }, { status: 404 })
   }
 
-const userCart = await prisma.cart.findFirst({
-  where: { userId: user.id },
-  include: {
-    items: {
-      include: {
-        variant: {
-          include: { product: true },
+  const userCart = await prisma.cart.findFirst({
+    where: { userId: user.id },
+    include: {
+      items: {
+        include: {
+          variant: {
+            include: { product: true },
+          },
         },
       },
     },
-  },
-})
+  })
 
-if (!userCart || userCart.items.length === 0) {
-  return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
-}
+  if (!userCart || userCart.items.length === 0) {
+    return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
+  }
 
-const cartItems = userCart.items
+  const cartItems = userCart.items
   if (cartItems.length === 0) {
     return NextResponse.json({ error: 'Cart is empty' }, { status: 400 })
   }
 
-const total = cartItems.reduce(
-  (sum: number, item: any) => 
-    sum + (item.variant.price ?? item.variant.product.price) * item.quantity, 0
-)
-  // បង្កើតការបញ្ជាទិញ
+  const total = cartItems.reduce(
+    (sum: number, item: any) => 
+      sum + (item.variant.price ?? item.variant.product.price) * item.quantity, 0
+  )
+
   const order = await prisma.order.create({
     data: {
       userId: user.id,
       total,
-      status: 'pending',
+      status: 'PENDING',
+      paymentStatus: 'UNPAID',
       items: {
-create: cartItems.map((item: any) => ({
-  variantId: item.variantId,
-  quantity: item.quantity,
-  price: item.variant.price ?? item.variant.product.price,
+        create: cartItems.map((item: any) => ({
+          variantId: item.variantId,
+          quantity: item.quantity,
+          price: item.variant.price ?? item.variant.product.price,
         })),
       },
     },
-include: {
-  items: {
     include: {
-      variant: {
-        include: { product: true },
+      items: {
+        include: {
+          variant: {
+            include: { product: true },
+          },
+        },
       },
     },
-  },
-},
   })
 
-  // លុប cart បន្ទាប់ពី order
   await prisma.cart.deleteMany({ where: { userId: user.id } })
 
-  // 🔥 ផ្ញើអ៊ីមែលបញ្ជាក់ការបញ្ជាទិញ
   console.log('📧 កំពុងផ្ញើអ៊ីមែលទៅ:', user.email)
   
   const emailResult = await sendOrderConfirmation({
     id: order.id,
-    customerName: user.name,
-    customerEmail: user.email,
+    customerName: user.name || 'Customer',
+    customerEmail: user.email || '',
     total: order.total,
-items: order.items.map((item: any) => ({
-  name: item.variant?.product?.name || 'Product',
-  quantity: item.quantity,
-  price: item.price,
-})),
+    items: order.items.map((item: any) => ({
+      name: item.variant?.product?.name || 'Product',
+      quantity: item.quantity,
+      price: item.price,
+    })),
     createdAt: order.createdAt,
   })
 
@@ -113,7 +112,7 @@ export async function GET() {
   const orders = await prisma.order.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
-include: { items: { include: { variant: { include: { product: true } } } } },
+    include: { items: { include: { variant: { include: { product: true } } } } },
   })
 
   return NextResponse.json(orders)

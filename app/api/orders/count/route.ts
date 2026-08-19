@@ -20,7 +20,7 @@ export async function GET(req: Request) {
       where: {
         userId: session.user.id,
         status: {
-          not: 'cancelled'
+          not: 'CANCELLED'  // ប្តូរពី 'cancelled' ទៅ 'CANCELLED' (អក្សរធំ)
         }
       }
     })

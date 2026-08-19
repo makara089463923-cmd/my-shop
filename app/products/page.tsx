@@ -325,8 +325,10 @@ function ProductsContent() {
         }
 
         const data = JSON.parse(text)
-        setProducts(data.products || [])
-        setPagination(data.pagination || { total: 0, page: 1, limit: 8, totalPages: 0 })
+console.log('📦 API Response data:', data)
+console.log('📦 First product:', data.products?.[0])
+console.log('📦 First product id:', data.products?.[0]?.id)
+setProducts(data.products || [])
       } catch (error) {
         console.error("Failed to fetch products:", error)
         setProducts([])
