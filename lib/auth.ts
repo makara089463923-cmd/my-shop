@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // Comment adapter នេះសិនដើម្បីតេស្តមើលថា Error បាត់អត់
-   adapter: PrismaAdapter(prisma) as any,
+   // adapter: PrismaAdapter(prisma) as any,
   
   providers: [
     Google({
