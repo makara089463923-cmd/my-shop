@@ -12,7 +12,9 @@ export async function GET() {
     where: { email: session.user.email },
   })
 
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  if (!user) {
+    return NextResponse.json(null)
+  }
 
   const cart = await prisma.cart.findFirst({
     where: { userId: user.id },
@@ -40,34 +42,33 @@ export async function POST(req: Request) {
     where: { email: session.user.email },
   })
 
-  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  if (!user) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
 
   const { productId, quantity } = await req.json()
 
-  // រក variant default សម្រាប់ product នេះ
   let variant = await prisma.productVariant.findFirst({
     where: { productId },
   })
 
-  // បើគ្មាន variant → បង្កើត default variant
   if (!variant) {
     const product = await prisma.product.findUnique({ where: { id: productId } })
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
-variant = await prisma.productVariant.create({
-  data: {
-    productId,
-    name: 'Default',
-    sku: `${productId}-default`,
-    price: product.price,
-    stock: product.stock,
-    attributes: {},
-  },
-})
+    variant = await prisma.productVariant.create({
+      data: {
+        productId,
+        name: 'Default',
+        sku: `${productId}-default`,
+        price: product.price,
+        stock: product.stock,
+        attributes: {},
+      },
+    })
   }
 
-  // រក ឬបង្កើត cart
   let cart = await prisma.cart.findFirst({
     where: { userId: user.id },
   })
@@ -78,7 +79,6 @@ variant = await prisma.productVariant.create({
     })
   }
 
-  // ពិនិត្យ existing cart item
   const existing = await prisma.cartItem.findFirst({
     where: { cartId: cart.id, variantId: variant.id },
   })

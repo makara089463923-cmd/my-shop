@@ -48,6 +48,7 @@ const total = cart?.items?.reduce((sum: number, item: any) => sum + item.quantit
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productId, quantity: 1 }),
+      credentials: 'include',
     })
 
     if (res.ok) {
