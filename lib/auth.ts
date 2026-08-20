@@ -61,9 +61,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.email = user.email
       } else if (token.email) {
         // រកមើល user ដែលមានស្រាប់នៅក្នុង database
-        const existingUser = await prisma.user.findUnique({
+        let existingUser = await prisma.user.findUnique({
           where: { email: token.email },
         })
+        
+        // បើគ្មាន user បង្កើតថ្មីដោយស្វ័យប្រវត្តិ
+        if (!existingUser && account?.provider === 'google') {
+          try {
+            existingUser = await prisma.user.create({
+              data: {
+                name: token.name || 'User',
+                email: token.email,
+                password: '',
+                role: 'USER',
+              },
+            })
+            console.log('✅ Auto-created user for Google OAuth:', token.email)
+          } catch (error) {
+            console.error('❌ Error creating user from Google OAuth:', error)
+          }
+        }
+        
         if (existingUser) {
           token.id = existingUser.id
           token.role = existingUser.role
